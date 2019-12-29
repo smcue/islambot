@@ -2,7 +2,7 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/956ae763120b46bda59e552edfc0677d)](https://www.codacy.com/manual/galacticwarrior9/islambot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=galacticwarrior9/islambot&amp;utm_campaign=Badge_Grade)
 [![Discord Bots](https://top.gg/api/widget/lib/352815253828141056.svg)](https://top.gg/bot/352815253828141056)
-![Discord](https://img.shields.io/discord/610613297452023837?label=Support%20Server)
+[![Discord](https://img.shields.io/discord/610613297452023837?label=Support%20Server)](https://discord.gg/Ud3MHJR)
 [![Discord Bots](https://top.gg/api/widget/status/352815253828141056.svg?noavatar=true)](https://top.gg/bot/352815253828141056)
 ![GitHub contributors](https://img.shields.io/github/contributors/galacticwarrior9/islambot?color=yellowgreen)
 
