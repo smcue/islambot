@@ -1,5 +1,6 @@
 from helpers import prefix
 import discord
+from discord.ext import commands
 
 description = "An Islamic bot for Discord."
 bot = discord.ext.commands.Bot(command_prefix=prefix, description=description)
