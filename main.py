@@ -20,5 +20,5 @@ async def on_ready():
         bot.load_extension(cog)
 
 token = open("token.txt", "r").read()
-bot.run(token)
+bot.run(token.strip())
 
