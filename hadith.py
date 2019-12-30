@@ -8,7 +8,7 @@ import textwrap
 
 HADITH_BOOK_LIST = ['bukhari', 'muslim', 'tirmidhi', 'abudawud', 'nasai',
         'ibnmajah', 'malik', 'riyadussaliheen', 'adab', 'bulugh', 'qudsi',
-        'nawawi']
+        'nawawi', 'shamail']
 
 ICON = 'https://sunnah.com/images/hadith_icon2_huge.png'
 
@@ -32,16 +32,18 @@ class HadithGrading:
         self.hadith_number = None
 
         self.hadithText = None
+        self.arabic_chapter_name = None
         self.chapter_name = None
         self.kitabName = None
 
 class HadithSpecifics:
     def __init__(self, book_name, session, isEng, ref):
-        self.session = session
+        self.session = sessiona
         self.book_name = book_name.lower()
         self.url = URL_FORMAT
 
         self.raw_text = None
+        self.embedTitle = None
         self.readableBookName = None
         self.hadith = HadithGrading()
 
@@ -60,11 +62,11 @@ class HadithSpecifics:
         else:
             self.hadithTextCSSClass = "arabic_hadith_full arabic"
             self.formatBookName = self.formatArabicBookName
-            self.embedTitle = self.hadith.chapter_name
+            self.embedTitle = self.hadith.arabic_chapter_name
 
             if not self.isQudsiNawawi():
                 self.embedAuthorName = \
-                        '{book_number}:{hadith_number} - {readableBookName}'
+                        '{readableBookName}'
             else:
                 self.embedAuthorName = \
                         '{hadith_number} {readableBookName} , حديث'
@@ -83,7 +85,7 @@ class HadithSpecifics:
             self.url = self.url.format(self.book_name,
                     self.hadith.hadith_number)
 
-    async def getHadith(self, depth = 0):
+    async def getHadith(self, isEng = False, depth = 0):
         async with self.session.get(self.url) as resp:
             data = await resp.read()
 
@@ -96,7 +98,12 @@ class HadithSpecifics:
         if (self.raw_text is None
                 or self.raw_text == "None") and depth < 1:
             self.url = URL_FORMAT.format("urn", self.hadith.hadith_number)
-            await self.getHadith(1)
+            
+            if isEng == True:
+                await self.getHadith(isEng = True, depth = 1)
+            else:
+                await self.getHadith(isEng = False, depth = 1)
+  
             return
 
         self.hadith.hadithText = self.formatHadithText(self.raw_text)
@@ -104,19 +111,22 @@ class HadithSpecifics:
         for hadith in scanner.findAll("div",
                 {"class": "hadith_narrated"}, limit = 1):
             self.hadith.narrator = hadith.text
-            self.embedTitle = self.hadith.narrator
+            if isEng == True:
+                self.embedTitle = self.hadith.narrator
 
         for hadith in scanner.findAll("td",
-                {"class": "english_grade"}, limit = 1):
+                {"class": "english_grade"}, limit = 2):
             self.hadith.grading = hadith.text
 
         for hadith in scanner.findAll("td",
-                {"class": "arabic_grade arabic"}, limit = 1):
+                {"class": "arabic_grade arabic"}, limit = 2):
             self.hadith.arabicGrading = hadith.text
 
         for hadith in scanner.findAll("div",
                 {"class": "arabicchapter arabic"}, limit = 1):
             self.hadith.arabic_chapter_name = hadith.text
+            if isEng == False:
+                self.embedTitle = self.hadith.arabic_chapter_name
 
         for hadith in scanner.findAll("div",
                 {"class": "book_page_english_name"}, limit = 1):
@@ -136,7 +146,7 @@ class HadithSpecifics:
 
         list = textwrap.wrap(self.hadith.hadithText, 1024)
         for x in list:
-            em.add_field(name="\a", value = x, inline = False)
+            em.add_field(name="\u200b", value = x, inline = False)
 
         if self.hadith.grading:
             em.set_footer(text = f'Grading{self.hadith.grading}')
@@ -169,6 +179,7 @@ class HadithSpecifics:
                 'riyadussaliheen': 'Riyadh as-Salihīn',
                 'adab'           : "Al-Adab al-Mufrad",
                 'bulugh'         : 'Bulugh al-Maram',
+                'shamail'        : "Shamā'il Muhammadiyyah",
                 'qudsi40'        : 'Al-Arbaʿīn al-Qudsiyyah',
                 'nawawi40'       : 'Al-Arbaʿīn al-Nawawiyyah'
                 }
@@ -188,6 +199,7 @@ class HadithSpecifics:
                 'riyadussaliheen': 'رياض الصالحين',
                 'adab'           : "الأدب المفرد",
                 'bulugh'         : 'بلوغ المرام',
+                'shamail'        : 'الشمائل المحمدية',
                 'qudsi40'        : 'الأربعون القدسية',
                 'nawawi40'       : 'الأربعون النووية'
                 }
@@ -217,7 +229,10 @@ class Hadith(commands.Cog):
         else:
             await ctx.send(INVALID_INPUT)
             return
-        await spec.getHadith()
+        if isEng == True:
+            await spec.getHadith(isEng = True)
+        else:
+            await spec.getHadith(isEng = False)
 
         if spec.hadith.hadithText is not None \
                 and spec.hadith.hadithText != "None":
