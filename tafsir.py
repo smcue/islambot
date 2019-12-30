@@ -208,7 +208,7 @@ class Tafsir(commands.Cog):
         text = t.processText(content, tafsir)
 
         em = t.makeEmbed(text, page, tafsirName, surah, ayah)
-        fields.clear()
+        tags.clear()
 
         msg = await ctx.send(embed=em)
         await msg.add_reaction(emoji="⬅")
