@@ -16,9 +16,9 @@ ERROR = ('The hadith could not be found on sunnah.com. This could be because'
         ' it does not exist, or due to the irregular structure of '
         'the website.')
 
-INVALID_INPUT = (f'Invalid arguments! Please do `{prefix}hadith (book name)'
-        f'[(book number):(hadith number)|(raw hadith number)]` \n'
-        f'Valid book names are `{HADITH_BOOK_LIST}`')
+INVALID_INPUT = f'Invalid arguments! Please do `{prefix}hadith (book name)' \
+        f'[(book number):(hadith number)|(raw hadith number)]` \n' \
+        f'Valid book names are `{HADITH_BOOK_LIST}`'
 
 URL_FORMAT = "https://sunnah.com/{}/{}"
 
@@ -34,8 +34,6 @@ class HadithGrading:
         self.hadithText = None
         self.chapter_name = None
         self.kitabName = None
-
-URL_FORMAT = "https://sunnah.com/{}/{}"
 
 class HadithSpecifics:
     def __init__(self, book_name, session, isEng, ref):
@@ -206,11 +204,11 @@ class Hadith(commands.Cog):
         self.session = ClientSession(loop = bot.loop)
 
     @commands.command(name='hadith')
-    async def hadith(self, ctx, book_name: str, ref: str):
+    async def hadith(self, ctx, book_name: str = None, ref: str = None):
         await self.abstract_hadith(ctx, book_name, ref, isEng = True)
 
     @commands.command(name='ahadith')
-    async def ahadith(self, ctx, book_name: str, ref: str):
+    async def ahadith(self, ctx, book_name: str = None, ref: str = None):
         await self.abstract_hadith(ctx, book_name, ref)
 
     async def abstract_hadith(self, ctx, book_name, ref, isEng = False):
