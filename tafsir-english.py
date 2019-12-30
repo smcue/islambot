@@ -25,7 +25,7 @@ dictID = {
     'kashf': 109,
 }
 
-list = []
+tags = []
 
 class TafsirEnglish(commands.Cog):
     fields = []
@@ -57,11 +57,11 @@ class TafsirEnglish(commands.Cog):
             soup = BeautifulSoup(site, 'html.parser')
 
             for tag in soup.findAll('p'):
-                list.append(f"{tag.getText()}")
+                tags.append(f"{tag.getText()}")
             for tag in soup.findAll('div', {'class':'view-empty'}):
-                list.append(f"{tag.getText()}")
+                tags.append(f"{tag.getText()}")
 
-            text = ''.join(list)
+            text = ''.join(tags)
             text = text.replace("Thanks for visiting Alim.org, The Alim Foundation's flagship site that provides the world's only social network built around Qur'an, Hadith, and other classical sources of Islamic knowledge.",'')
             text = text.replace("We are a free service run by many volunteers and we need your help to stay that way. Please consider a small donation(tax-deductible in the USA) to help us improve Alim.org by adding more content and getting faster servers.", '')
             text = text.replace("Share your thoughts about this with others by posting a comment. Visit our FAQ for some ideas.", '')
@@ -76,15 +76,15 @@ class TafsirEnglish(commands.Cog):
             text = text.replace('Messenger of Allah', 'Messenger of Allah ﷺ')
             text = text.replace (' )', ')')
 
-            list.clear()
+            tags.clear()
 
-            objects = textwrap.wrap(text, 5950, break_long_words=False)
-            for object in objects:
+            processedText = textwrap.wrap(text, 5950, break_long_words=False)
+            for entry in processedText:
                 em = discord.Embed(title=f'{surah}:{ayah}', colour=0x467f05)
                 em.set_author(name=f'{tafsirName}', icon_url=icon)
-                fields = textwrap.wrap(object, 1024, break_long_words=False)
-                for index, item in enumerate(fields, 0):
-                    em.add_field(name='\u200b', value=item, inline=True)
+                fields = textwrap.wrap(entry, 1024, break_long_words=False)
+                for _, item in enumerate(fields, 0):
+                    em.add_field(name='\u200b', value=item, inline=False)
                 await ctx.send(embed=em)
 
 
@@ -182,12 +182,12 @@ class EnglishTafsirSpecifics:
 
         soup = BeautifulSoup(content, 'html.parser')
         for tag in soup.findAll('font',attrs={'class':'TextResultEnglish'}):
-                list.append(f' {tag.getText()}')
+                tags.append(f' {tag.getText()}')
         for tag in soup.findAll('font',attrs={'class':'TextArabic'}):
-                list.append(tag.getText())
+                tags.append(tag.getText())
 
-        text = ''.join(list)
-        list.clear()
+        text = ''.join(tags)
+        tags.clear()
 
         return text
 

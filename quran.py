@@ -153,7 +153,7 @@ class Quran(commands.Cog):
         else:
 
             try:
-                
+
                 db = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password, database=self.database)
                 Quran.formatEdition(translation)
                 server = ctx.message.guild.id
@@ -166,7 +166,7 @@ class Quran(commands.Cog):
 
                 await ctx.send(f"**Successfully updated default translation to `{translation}`!**")
 
-            except Exception as e:
+            except:
                 await ctx.send("**Invalid translation key**. List of translation keys: <https://github.com/galacticwarrior9/islambot/blob/master/Translations.md>")
 
     @commands.command(name="quran")
@@ -237,7 +237,7 @@ class Quran(commands.Cog):
 
     async def getVerses(self, spec, quranCom):
         for verse in range(spec.minAyah, spec.maxAyah):
-            if quranCom == False:
+            if quranCom is False:
                 async with self.session.get(self.url1.format(spec.surah, verse, spec.edition)) as r:
                     data = await r.json()
                 spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data['data']['text']

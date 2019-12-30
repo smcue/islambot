@@ -103,7 +103,7 @@ class HadithSpecifics:
                 await self.getHadith(isEng = True, depth = 1)
             else:
                 await self.getHadith(isEng = False, depth = 1)
-  
+
             return
 
         self.hadith.hadithText = self.formatHadithText(self.raw_text)

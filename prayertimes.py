@@ -53,7 +53,7 @@ class PrayerTimes(commands.Cog):
             await ctx.send(embed=em)
 
 
-        except Exception as e:
+        except:
 
             await ctx.send('**Invalid arguments!** Usage: `.prayertimes [location]`.\n'
                                'Example: `-prayertimes London`\n')

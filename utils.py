@@ -27,7 +27,6 @@ def makeEmbed(**kwargs):
         author = kwargs.get('author', Empty)
         author_url = kwargs.get('author_url', Empty)
         author_icon = kwargs.get('author_icon', Empty)
-        user = kwargs.get('user', None)
 
         # Get the colour
         colour = kwargs.get('colour', 0)

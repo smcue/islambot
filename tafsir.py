@@ -7,7 +7,7 @@ from aiohttp import ClientSession
 icon = 'https://lh5.ggpht.com/lRz25mOFrRL42NuHtuSCneXbWV2Gtm7iYZ5eQbuA7JWUC3guWaTaQxNJ7j9rsRMCNAU=w150'
 
 orderedPages = []
-fields = []
+tags = []
 finalList = []
 list = []
 
@@ -131,7 +131,7 @@ class TafsirSpecifics:
     def getTafsirIDFromArabic(self, arabicName):
         for englishName, value in dictName.items():
             if value == arabicName:
-                tafsirName, tafsirID = TafsirSpecifics.getTafsirID(self, englishName)
+                _, tafsirID = TafsirSpecifics.getTafsirID(self, englishName)
                 return tafsirID, englishName
 
     def processRef(self, ref: str):
@@ -146,7 +146,7 @@ class TafsirSpecifics:
 
             fields = textwrap.wrap(text, 1024, break_long_words = False)
             for x in fields:
-                em.add_field(name='\u200b', value = x, inline = True)
+                em.add_field(name='\u200b', value = x, inline = False)
 
             tafsirName = tafsirName.replace('(', ' -  ')
             tafsirName = tafsirName.replace(')', '')
@@ -167,10 +167,10 @@ class TafsirSpecifics:
         soup = BeautifulSoup(fixedSoup, 'html.parser')
 
         for tag in soup.findAll('font',attrs={'class':'TextResultArabic'}):
-                list.append(f' {tag.getText()}') #For each tag with Arabic text, add it to a list.
+                tags.append(f' {tag.getText()}') #For each tag with Arabic text, add it to a list.
 
-        text = ''.join(list) #Convert the list into a string.
-        list.clear()
+        text = ''.join(tags) #Convert the list into a string.
+        tags.clear()
 
         text = text.replace('ويسعدنا استقبال اقتراحاتكم وملاحظاتكم عبر البريد الإلكتروني المخصص ', '')
         text = text.replace("هل تؤيد تغيير مخطط وتصميم الموقع ليواكب التطورات التكنولوجية؟ زوارنا الكرام، نشكركم على إبداء رأيكم لمساعدتنا في اتخاذ القرار المناسب والمرضي لكم بناء على نتائج التصويت.", '')
@@ -218,7 +218,6 @@ class Tafsir(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         t = TafsirSpecifics()
         if reaction.message.author.id == 352815253828141056 and user.id != 352815253828141056:
-            channel = reaction.message.channel
             embed = reaction.message.embeds[0]
 
             arabicName = embed.author.name.split('|', 1)[0][:-1] #Delete last character as it's blank.
