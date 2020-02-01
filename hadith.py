@@ -38,7 +38,7 @@ class HadithGrading:
 
 class HadithSpecifics:
     def __init__(self, book_name, session, isEng, ref):
-        self.session = sessiona
+        self.session = session
         self.book_name = book_name.lower()
         self.url = URL_FORMAT
 
@@ -112,18 +112,20 @@ class HadithSpecifics:
                 {"class": "hadith_narrated"}, limit = 1):
             self.hadith.narrator = hadith.text
             if isEng == True:
-                self.embedTitle = self.hadith.narrator
+                self.embedTitle = self.hadith.narrator.replace('`','ʿ')
 
-        for hadith in scanner.findAll("td",
-                {"class": "english_grade"}, limit = 2):
-            self.hadith.grading = hadith.text
+        if isEng == True:
+            for hadith in scanner.findAll("td",
+                    {"class": "english_grade"}, limit = 2):
+                self.hadith.grading = hadith.text
 
-        for hadith in scanner.findAll("td",
-                {"class": "arabic_grade arabic"}, limit = 2):
-            self.hadith.arabicGrading = hadith.text
+        else:
+            for hadith in scanner.findAll("td",
+                    {"class": "arabic_grade arabic"}, limit = 1):
+                self.hadith.arabicGrading = hadith.text.replace(')', '').replace('(', '')
 
         for hadith in scanner.findAll("div",
-                {"class": "arabicchapter arabic"}, limit = 1):
+                {"class": "arabicchapter arabic"}, limit = 2):
             self.hadith.arabic_chapter_name = hadith.text
             if isEng == False:
                 self.embedTitle = self.hadith.arabic_chapter_name
