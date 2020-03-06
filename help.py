@@ -17,7 +17,7 @@ class Help(commands.Cog):
         em.add_field(name="Tafsir", value='-tafsir <surah:ayah> <optional tafsir name> e.g. `-tafsir 1:1 ibnkathir`  \n -atafsir <surah:ayah> <tafsir name> e.g. `-atafsir 1:1 razi`', inline=False)
         em.add_field(name="Hadith", value='-hadith <kitab name> <book no>:<hadith no> e.g. `-hadith bukhari 1:2` \n -ahadith <kitab name> <book no>:<hadith no> e.g. `-ahadith bukhari 1:2`', inline=False)
         em.add_field(name="Prayer Times", value='-prayertimes <Location> e.g. `-prayertimes Los Angeles`', inline=False)
-        em.add_field(name="Hijri Calendar", value='-converttohijri DD-MM-YYYY e.g. `-convertttohijri 13-08-2019` \n -convertfromhijri DD-MM-YYYY e.g. `-convertfromhijri 01-02-1440`', inline=False)
+        em.add_field(name="Hijri Calendar", value='-converttohijri DD-MM-YYYY e.g. `-converttohijri 13-08-2019` \n -convertfromhijri DD-MM-YYYY e.g. `-convertfromhijri 01-02-1440`', inline=False)
         em.add_field(name="Search", value='-search <search term> e.g. `-search Can Hanafis eat shrimp?`', inline=False)
         em.add_field(name="Admin", value='-settranslation <translation> e.g. `-settranslation clearquran` \n **You must have the "Manage Server" permission to use this command**. \n List of translations: https://github.com/galacticwarrior9/islambot/blob/master/Translations.md', inline=False)
         em.set_footer(text="Support Server - https://discord.gg/Ud3MHJR")
