@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 
 description = "An Islamic bot for Discord."
-bot = discord.ext.commands.Bot(command_prefix=prefix, description=description)
+bot = discord.ext.commands.AutoShardedBot(command_prefix=prefix, description=description)
 
 
 @bot.event
