@@ -4,15 +4,30 @@ from discord.ext.commands import has_permissions
 from utils import makeEmbed
 import re
 import mysql.connector
+from mysql.connector import pooling
 from helpers import processRef, Specifics, prefix
 
+INVALID_TRANSLATION = "**Invalid translation**. List of translations: <https://github.com/galacticwarrior9/is" \
+                      "lambot/blob/master/Translations.md>"
+
+INVALID_ARGUMENTS_ARABIC = "Invalid arguments! Do `{0}aquran [surah]:[ayah]`. Example: `{0}aquran 1:1`" \
+                               "\nTo fetch multiple verses, do `{0}quran [surah]:[first ayah]-[last ayah]`" \
+                               "\nExample: `{0}aquran 1:1-7`".format(prefix)
+
+INVALID_ARGUMENTS_ENGLISH = "Invalid arguments! Do `{0}aquran [surah]:[ayah]`. Example: `{0}aquran 1:1`" \
+                               "\nTo fetch multiple verses, do `{0}quran [surah]:[first ayah]-[last ayah]`" \
+                               "\nExample: `{0}aquran 1:1-7`".format(prefix)
+
+SQL_ERROR = "There was an error connecting to the database."
+
 icon = 'http://lh5.ggpht.com/2BfAv_esGGNfXvkhNiwA-77S7145Z7zDGui98OMG2XqBNqjHx7t4Ya-uLZkuynroQ6M=w300'
-mysqlDetails = open('mysql.txt').read().splitlines()
+
 
 class QuranSpecifics(Specifics):
     def __init__(self, surah, minayah, maxayah, edition):
         super().__init__(surah, minayah, maxayah)
         self.edition = edition
+
 
 class Quran(commands.Cog):
 
@@ -22,12 +37,6 @@ class Quran(commands.Cog):
         self.url1 = 'http://api.alquran.cloud/ayah/{}:{}/{}'
         self.url2 = 'http://staging.quran.com:3000/api/v3/chapters/{}/verses?page=1&limit=1&offset={}&translations[]={}'
         self.quranComEditions = ['haleem', 'taqiusmani', 'clearquran', 85, 84, 131]
-        self.host = mysqlDetails[0]
-        self.user = mysqlDetails[1]
-        self.password = mysqlDetails[2]
-        self.database = mysqlDetails[3]
-
-
 
     @staticmethod
     def formatEdition(edition):
@@ -122,18 +131,95 @@ class Quran(commands.Cog):
         }
         return editionNames[edition]
 
+    @commands.command(name="settranslation")
+    @has_permissions(manage_guild=True)
+    async def settranslation(self, ctx, translation: str):
+
+        if translation is None:
+            await ctx.send(INVALID_TRANSLATION)
+            return
+
+        else:
+            try:
+                self.formatEdition(translation)
+                connection = MySQL.connection_pool.get_connection()
+                cursor = connection.cursor(buffered=True)
+                sql = "UPDATE bot SET translation = %s WHERE server = %s"
+                cursor.execute(sql, (translation, ctx.message.guild.id))
+                connection.commit()
+                connection.close()
+
+                await ctx.send(f"**Successfully updated default translation to `{translation}`!**")
+
+            except:
+                await ctx.send(INVALID_TRANSLATION)
+
+    @commands.command(name="quran")
+    async def quran(self, ctx, ref: str, edition: str = None):
+        async with ctx.channel.typing():
+
+            # If no translation is specified, contact the MySQL database to see if the server set a default one.
+
+            if edition is None:
+
+                try:
+                    connection = MySQL.connection_pool.get_connection()
+                    cursor = connection.cursor(buffered=True)
+                    cursor.execute(f"SELECT translation FROM bot WHERE server = {ctx.message.guild.id}")
+                    result = cursor.fetchone()
+                    connection.close()
+
+                    # If the server has not set a default translation, use Sahih International.
+                    if result is None:
+                        edition = "en.sahih"
+
+                    # Use the server default if found:
+                    else:
+                        edition = self.formatEdition(result[0])
+
+                # If the database cannot be reached, fall back to Sahih International.
+                except:
+                    edition = "en.sahih"
+
+            # If a translation was specified in the command, check whether it is valid:
+            else:
+                try:
+                    edition = self.formatEdition(edition)
+                except KeyError:
+                    await ctx.send(INVALID_TRANSLATION)
+                    return
+
+            # Check if the verses need to be fetched from quran.com.
+            if edition in self.quranComEditions:
+                quranCom = True
+
+            else:
+                quranCom = False
+
+            # Now fetch the verses:
+            try:
+                quranSpec = self.getSpec(ref, edition=edition)
+
+            except:
+                await ctx.send(INVALID_ARGUMENTS_ENGLISH.format(prefix))
+                return
+
+            surah_name, readableEdition, englishSurahName, revelationType = await self.getMetadata(quranSpec, edition)
+
+            await self.getVerses(quranSpec, quranCom)
+
+            em = makeEmbed(fields=quranSpec.orderedDict, author=f"Surah {surah_name} ({englishSurahName})",
+                           author_icon=icon, colour=0x78c741, inline=False)
+            em.set_footer(text=f'Translation: {readableEdition} | {revelationType}')
+            await ctx.send(embed=em)
+
     @commands.command(name="aquran")
     async def aquran(self, ctx, *, ref: str):
 
         try:
             quranSpec = self.getSpec(ref)
         except:
-            await ctx.send("Invalid arguments! Do `{0}aquran [surah]:[ayah]`. "
-                               "Example: `{0}aquran 1:1`"
-                               "\n"
-                               "To quote multiple verses, do `{0}quran [surah]:[first ayah]-[last ayah]`"
-                               "\n"
-                               "Example: `{0}aquran 1:1-7`.".format(prefix))
+            await ctx.send(INVALID_ARGUMENTS_ARABIC.format(prefix))
             return
 
         surah_name = await self.getMetadata(quranSpec, edition = 'ar')
@@ -141,94 +227,6 @@ class Quran(commands.Cog):
 
         em = makeEmbed(fields=quranSpec.orderedDict, author=surah_name, author_icon=icon, colour=0x78c741, inline=False)
         await ctx.send(embed=em)
-
-    @commands.command(name="settranslation")
-    @has_permissions(manage_guild=True)
-    async def settranslation(self, ctx, translation: str):
-
-        if translation is None:
-            await ctx.send("You must provide a valid translation key. List of translation keys: <https://github.com/galacticwarrior9/islambot/blob/master/Translations.md>")
-            return
-
-        else:
-
-            try:
-
-                db = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password, database=self.database)
-                Quran.formatEdition(translation)
-                server = ctx.message.guild.id
-                cursor = db.cursor(buffered=True)
-                query = (f"UPDATE bot SET translation = %s WHERE server = %s")
-                data = (translation, server)
-                cursor.execute(query, data)
-                db.commit()
-                cursor.close()
-
-                await ctx.send(f"**Successfully updated default translation to `{translation}`!**")
-
-            except:
-                await ctx.send("**Invalid translation key**. List of translation keys: <https://github.com/galacticwarrior9/islambot/blob/master/Translations.md>")
-
-    @commands.command(name="quran")
-    async def quran(self, ctx, ref: str, edition: str = None):
-
-        db = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password, database=self.database)
-        server = ctx.message.guild.id
-        cursor = db.cursor(buffered=True)
-        sql = "INSERT IGNORE INTO bot (server, translation) VALUES (%s, %s)"
-        val = (f"{server}", "sahih")
-        cursor.execute(sql, val)
-        db.commit()
-
-        if edition is None:
-            cursor.execute(f"SELECT translation FROM bot WHERE server = {server}")
-            edition = str(cursor.fetchone()[0])
-            print(edition)
-        cursor.close()
-        edition = edition.lower()
-
-        if edition in self.quranComEditions:
-            quranCom = True
-
-        else:
-            quranCom = False
-
-        try:
-            edition = self.formatEdition(edition)
-
-            try:
-                quranSpec = self.getSpec(ref, edition=edition)
-
-            except:
-
-                await ctx.send("Invalid arguments! Do `{0}quran [surah]:[ayah] [edition]`. "
-                               "Example: `{0}quran 1:1`"
-                               "\n"
-                               "Example 2: `{0}quran 1:1 yusufali`"
-                               "\n\n"
-                               "To quote multiple verses, do `{0}quran [surah]:[first ayah]-[last ayah]`"
-                               "\n"
-                               "Example: `{0}quran 1:1-7`.".format(prefix))
-                return
-
-            try:
-
-                surah_name, readableEdition, englishSurahName, revelationType = await self.getMetadata(quranSpec, edition)
-
-                await self.getVerses(quranSpec, quranCom)
-
-                em = makeEmbed(fields=quranSpec.orderedDict, author=f"Surah {surah_name} ({englishSurahName})",
-                               author_icon=icon, colour=0x78c741, inline=False)
-                em.set_footer(text=f'Translation: {readableEdition} | {revelationType}')
-                await ctx.send(embed=em)
-
-            except Exception as e:
-
-                print(e)
-
-        except:
-            await ctx.send(f'Invalid translation. A list can be found at:\n'
-                            '<https://github.com/galacticwarrior9/islambot/blob/master/Translations.md>')
 
     @staticmethod
     def getSpec(ref, edition = 'ar'):
@@ -258,8 +256,23 @@ class Quran(commands.Cog):
         elif spec.edition in self.quranComEditions:
             return data['data']['surah']['englishName'], self.getEditionName(edition), data['data']['surah']['englishNameTranslation'], data['data']['surah']['revelationType']
         else:
-            print(spec.edition)
             return data['data']['surah']['englishName'], data['data']['edition']['name'], data['data']['surah']['englishNameTranslation'], data['data']['surah']['revelationType'],
+
+
+class MySQL:
+    mysqlDetails = open('mysql.txt').read().splitlines()
+    host = mysqlDetails[0]
+    user = mysqlDetails[1]
+    password = mysqlDetails[2]
+    database = mysqlDetails[3]
+
+    connection_pool = mysql.connector.pooling.MySQLConnectionPool(pool_name="quran_pool",
+                                                                  pool_size=1,
+                                                                  pool_reset_session=True,
+                                                                  host=host,
+                                                                  database=database,
+                                                                  user=user,
+                                                                  password=password)
 
 
 # Register as cog

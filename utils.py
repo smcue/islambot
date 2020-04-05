@@ -1,4 +1,6 @@
 from discord import Embed
+from discord.ext import commands
+import dbl
 
 
 def makeEmbed(**kwargs):
@@ -44,7 +46,6 @@ def makeEmbed(**kwargs):
         thumbnail = kwargs.get('thumbnail', False)
         image = kwargs.get('image', False)
 
-
     # Filter the colour into a usable form
     if type(colour).__name__ == 'Message':
         colour = colour.author.colour.value
@@ -75,3 +76,20 @@ def makeEmbed(**kwargs):
 
     # Return to user
     return embedObj
+
+
+class TopGG(commands.Cog):
+    """Handles interactions with the top.gg API"""
+
+    def __init__(self, bot):
+        self.bot = bot
+        self.token = open('dbltoken.txt', 'r').read()
+        self.dblpy = dbl.DBLClient(self.bot, self.token, autopost=True)
+
+    async def on_guild_post(self):
+        print("Server count posted successfully")
+
+
+def setup(bot):
+    bot.add_cog(TopGG(bot))
+

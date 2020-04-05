@@ -1,5 +1,17 @@
 from collections import OrderedDict
+import aiohttp
+from bs4 import BeautifulSoup
+
 prefix = '-'
+
+
+async def get_site_source(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            text = await resp.read()
+
+    return BeautifulSoup(text.decode('utf-8','ignore'), 'html.parser')
+
 
 class Specifics:
     def __init__(self, surah, ayah, maxayah):
@@ -7,6 +19,7 @@ class Specifics:
         self.minAyah = ayah
         self.maxAyah = maxayah
         self.orderedDict = OrderedDict()
+
 
 def processRef(ref):
     surah = int(ref.split(':')[0])

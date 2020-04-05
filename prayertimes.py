@@ -1,9 +1,11 @@
 import discord
 from discord.ext import commands
 from aiohttp import ClientSession
+
 icon = 'https://www.muslimpro.com/img/muslimpro-logo-2016-250.png'
 
 headers = {'content-type': 'application/json'}
+
 
 class PrayerTimes(commands.Cog):
 
@@ -36,27 +38,24 @@ class PrayerTimes(commands.Cog):
 
             hanafi_asr = data['data']['timings']['Asr']
 
-            # Construct message from variables
-            text = f'**Fajr**: {fajr}\n' \
-                   f'**Sunrise**: {sunrise}\n' \
-                   f'**Dhuhr**: {dhuhr}\n' \
-                   f'**Asr**: {default_asr} | **Asr (Hanafi)**: {hanafi_asr}\n' \
-                   f'**Maghrib**: {maghrib}\n' \
-                   f'**Isha**: {isha}\n' \
-                   f'**Midnight**: {midnight}\n' \
-                   f'**Imsak**: {imsak}'
-
             # Construct and send embed
-            em = discord.Embed(description=text, colour=0x2186d3)
+            em = discord.Embed(colour=0x2186d3)
             em.set_author(name=f'Prayer Times for {location.title()}', icon_url=icon)
-            em.set_footer(text=f'Calculation Method: Umm al-Qura')
+            em.add_field(name=f'**Imsak (إِمْسَاك)**', value=f'{imsak}', inline=True)
+            em.add_field(name=f'**Fajr (صلاة الفجر)**', value=f'{fajr}', inline=True)
+            em.add_field(name=f'**Sunrise (طلوع الشمس)**', value=f'{sunrise}', inline=True)
+            em.add_field(name=f'**Ẓuhr (صلاة الظهر)**', value=f'{dhuhr}', inline=True)
+            em.add_field(name=f'**Asr (صلاة العصر)**', value=f'{default_asr}', inline=True)
+            em.add_field(name=f'**Asr - Ḥanafī School (صلاة العصر - المذهب الحنفي)**', value=f'{hanafi_asr}', inline=True)
+            em.add_field(name=f'**Maghrib (صلاة المغرب)**', value=f'{maghrib}', inline=True)
+            em.add_field(name=f'**Isha (صلاة العشاء)**', value=f'{isha}', inline=True)
+            em.add_field(name=f'**Midnight (منتصف الليل)**', value=f'{midnight}', inline=True)
+            em.set_footer(text=f'Calculation Method: Umm al-Qura University')
             await ctx.send(embed=em)
 
-
         except:
-
             await ctx.send('**Invalid arguments!** Usage: `.prayertimes [location]`.\n'
-                               'Example: `-prayertimes London`\n')
+                           'Example: `-prayertimes London`\n')
 
 
 # Register as cog

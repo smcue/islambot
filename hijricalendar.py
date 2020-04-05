@@ -6,10 +6,9 @@ class HijriCalendar(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.session = aiohttp.ClientSession(loop = bot.loop)
+        self.session = aiohttp.ClientSession(loop=bot.loop)
         self.toGregorian_url = 'https://api.aladhan.com/hToG?date={}'
         self.toHijri_url = 'https://api.aladhan.com/gToH?date={}'
-
 
     @commands.command(name='convertfromhijri')
     async def converthijridate(self, ctx, date: str):

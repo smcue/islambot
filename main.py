@@ -1,5 +1,5 @@
-from helpers import prefix
 import discord
+from helpers import prefix
 from discord.ext import commands
 
 description = "An Islamic bot for Discord."
@@ -15,7 +15,8 @@ async def on_ready():
 
     bot.remove_command('help')
 
-    cog_list = ['hadith', 'hijricalendar', 'prayertimes', 'quran-morphology', 'quran', 'tafsir', 'tafsir-english', 'mushaf', "search", 'help']
+    cog_list = ['hadith', 'hijricalendar', 'prayertimes', 'quran-morphology', 'quran', 'tafsir', 'tafsir-english',
+                'mushaf', "search", 'help', 'TopGG']
     for cog in cog_list:
         bot.load_extension(cog)
 

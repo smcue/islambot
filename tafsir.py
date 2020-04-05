@@ -6,11 +6,6 @@ from aiohttp import ClientSession
 
 icon = 'https://lh5.ggpht.com/lRz25mOFrRL42NuHtuSCneXbWV2Gtm7iYZ5eQbuA7JWUC3guWaTaQxNJ7j9rsRMCNAU=w150'
 
-orderedPages = []
-tags = []
-finalList = []
-list = []
-
 dictName = {
     'maturidi': 'تأويلات أهل السنة / الماتريدي',
     'tabari': 'جامع البيان في تفسير القرآن / الطبري',
@@ -108,11 +103,11 @@ dictID = {
 }
 
 
-
 class TafsirSpecifics:
 
     def __init__(self):
-        self.baseurl = 'https://www.altafsir.com/Tafasir.asp?tMadhNo=0&tTafsirNo={}&tSoraNo={}&tAyahNo={}&tDisplay=yes&Page={}&Size=1&LanguageId=1'
+        self.baseurl = 'https://www.altafsir.com/Tafasir.asp?tMadhNo=0&tTafsirNo={}&tSoraNo={}&tAyahNo={}&tDisplay=' \
+                       'yes&Page={}&Size=1&LanguageId=1'
 
     def makeURL(self, tafsirID, surah, ayah, page):
         url = self.baseurl.format(tafsirID, surah, ayah, page)
@@ -143,13 +138,12 @@ class TafsirSpecifics:
 
             em = discord.Embed(title=f'Page {page}', colour=0x467f05)
 
-
             fields = textwrap.wrap(text, 1024, break_long_words = False)
             for x in fields:
-                em.add_field(name='\u200b', value = x, inline = False)
+                em.add_field(name = '\u200b', value = x, inline = False)
 
-            tafsirName = tafsirName.replace('(', ' -  ')
-            tafsirName = tafsirName.replace(')', '')
+            tafsirName = tafsirName.replace('(', ' -  ') \
+                .replace(')', '')
 
             em.set_author(name=f'{tafsirName} | {surah}:{ayah}', icon_url=icon)
 
@@ -158,34 +152,41 @@ class TafsirSpecifics:
     def processText(self, content, tafsir):
         content = content.encode('cp1256').decode('cp1256')
 
+        '''
+        We want to edit the page so the ayah references show up.
+        Firstly, we delete the ayah overview at the beginning of each page.
+        Then we delete the tags surrounding the ayat so they are detected by the bot.
+        '''
+
+        content = str(content) \
+            .replace('<font class="TextAyah" id="AyahText">', ' ') \
+            .replace('<font class="TextAyah"', '  ')
+
         soup = BeautifulSoup(content, 'html.parser')
 
-        fixedSoup = str(soup) #Now we want to edit the page so the ayah references show up.
-        fixedSoup = fixedSoup.replace('<font class="TextAyah" id="AyahText">', '') #Delete the ayah overview at the beginning of each page.
-        fixedSoup = fixedSoup.replace('<font class="TextAyah"', '  ') #Change the ayah tags so they are read by the bot.
+        tags = []
 
-        soup = BeautifulSoup(fixedSoup, 'html.parser')
+        for tag in soup.findAll('font', attrs={'class': 'TextResultArabic'}):
+            tags.append(f' {tag.getText()}')  # For each tag with Arabic text, add it to a list.
 
-        for tag in soup.findAll('font',attrs={'class':'TextResultArabic'}):
-                tags.append(f' {tag.getText()}') #For each tag with Arabic text, add it to a list.
+        text = ''.join(tags)  # Convert the list into a string.
 
-        text = ''.join(tags) #Convert the list into a string.
-        tags.clear()
+        text = text.replace('ويسعدنا استقبال اقتراحاتكم وملاحظاتكم عبر البريد الإلكتروني المخصص ', '') \
+            .replace("هل تؤيد تغيير مخطط وتصميم الموقع ليواكب التطورات التكنولوجية؟ زوارنا الكرام، نشكركم على إبداء رأيكم لمساعدتنا في اتخاذ القرار المناسب والمرضي لكم بناء على نتائج التصويت.", '') \
+            .replace('(altafsir@itgsolutions.com)', '') \
+            .replace('مصنف', '') \
+            .replace('و مدقق', '') \
+            .replace('مرحلة اولى', '') \
+            .replace('*', '') \
+            .replace(dictBuggedNames[tafsir], '') \
+            .replace('\r\n\r\n\n', '') \
+            .replace('  ', '') \
+            .replace("و لم يتم تدقيقه بعد", '')
 
-        text = text.replace('ويسعدنا استقبال اقتراحاتكم وملاحظاتكم عبر البريد الإلكتروني المخصص ', '')
-        text = text.replace("هل تؤيد تغيير مخطط وتصميم الموقع ليواكب التطورات التكنولوجية؟ زوارنا الكرام، نشكركم على إبداء رأيكم لمساعدتنا في اتخاذ القرار المناسب والمرضي لكم بناء على نتائج التصويت.", '')
-        text = text.replace('(altafsir@itgsolutions.com)', '')
-        text = text.replace('مصنف', '')
-        text = text.replace('و مدقق', '')
-        text = text.replace('مرحلة اولى', '')
-        text = text.replace('*', '')
-        text = text.replace(dictBuggedNames[tafsir], '')
-        text = text.replace('\r\n\r\n\n', '')
-        text = text.replace('  ', '')
-        text = text.replace("و لم يتم تدقيقه بعد", '')
-        text = "\n".join([ll.rstrip() for ll in text.splitlines() if ll.strip()]) #Delete blank lines
+        text = "\n".join([ll.rstrip() for ll in text.splitlines() if ll.strip()])  # Delete blank lines
 
         return text
+
 
 class Tafsir(commands.Cog):
 
@@ -208,7 +209,6 @@ class Tafsir(commands.Cog):
         text = t.processText(content, tafsir)
 
         em = t.makeEmbed(text, page, tafsirName, surah, ayah)
-        tags.clear()
 
         msg = await ctx.send(embed=em)
         await msg.add_reaction(emoji="⬅")
@@ -220,7 +220,7 @@ class Tafsir(commands.Cog):
         if reaction.message.author.id == 352815253828141056 and user.id != 352815253828141056:
             embed = reaction.message.embeds[0]
 
-            arabicName = embed.author.name.split('|', 1)[0][:-1] #Delete last character as it's blank.
+            arabicName = embed.author.name.split('|', 1)[0][:-1]  # Delete last character as it's blank.
 
             ref = embed.author.name.split('|', 1)[1].strip()
             surah, ayah = t.processRef(ref)

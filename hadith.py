@@ -1,7 +1,6 @@
 import re
 import discord
-from helpers import prefix
-from bs4 import BeautifulSoup
+from helpers import prefix, get_site_source
 from discord.ext import commands
 from aiohttp import ClientSession
 import textwrap
@@ -12,9 +11,7 @@ HADITH_BOOK_LIST = ['bukhari', 'muslim', 'tirmidhi', 'abudawud', 'nasai',
 
 ICON = 'https://sunnah.com/images/hadith_icon2_huge.png'
 
-ERROR = ('The hadith could not be found on sunnah.com. This could be because'
-        ' it does not exist, or due to the irregular structure of '
-        'the website.')
+ERROR = 'The hadith could not be found on sunnah.com.'
 
 INVALID_INPUT = f'Invalid arguments! Please do `{prefix}hadith (book name)' \
         f'[(book number):(hadith number)|(raw hadith number)]` \n' \
@@ -86,17 +83,14 @@ class HadithSpecifics:
                     self.hadith.hadith_number)
 
     async def getHadith(self, isEng = False, depth = 0):
-        async with self.session.get(self.url) as resp:
-            data = await resp.read()
 
-        scanner = BeautifulSoup(data, "html.parser")
+        scanner = await get_site_source(self.url)
 
         for hadith in scanner.findAll("div",
                 {"class": self.hadithTextCSSClass}, limit = 1):
             self.raw_text = hadith.text
 
-        if (self.raw_text is None
-                or self.raw_text == "None") and depth < 1:
+        if (self.raw_text is None or self.raw_text == "None") and depth < 1:
             self.url = URL_FORMAT.format("urn", self.hadith.hadith_number)
             
             if isEng == True:
@@ -242,6 +236,43 @@ class Hadith(commands.Cog):
             await ctx.send(embed=em)
         else:
             await ctx.send(ERROR)
+
+    async def abstract_hadith_from_link(self, message, book_name, ref, isEng = True):
+
+        if book_name in HADITH_BOOK_LIST:
+            spec = HadithSpecifics(book_name, self.session, isEng, ref)
+        else:
+            return
+
+        await spec.getHadith(isEng = True)
+
+        if spec.hadith.hadithText is not None \
+                and spec.hadith.hadithText != "None":
+            em = spec.makeEmbed()
+            return em
+
+    def findURL(self, message):
+        urls = re.findall(r'(https?://\S+)', message)
+        for link in urls:
+            if "sunnah.com/" in link:
+                return link
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        content = message.content
+        url = self.findURL(content)
+        if url is not None:
+            try:
+                meta = url.split("/")
+                name = meta[3]
+                book = meta[4]
+                hadith = meta[5]
+                ref = f"{book}:{hadith}"
+                em = await self.abstract_hadith_from_link(message, name, ref, True)
+                await message.channel.send(embed=em)
+
+            except:
+                return
 
 # Register as cog
 def setup(bot):
