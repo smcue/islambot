@@ -1,8 +1,19 @@
+# English Tafsir
+
+The bot is able to quote from 7 *tafaseer* (commentaries on the Qurʾān) translated to English for use with the `-tafsir` command (see the [documentation](https://github.com/galacticwarrior9/islambot/blob/master/README.md)). I have attempted to add a short description to each one:
+
+1. `jalalayn` - the tafsir of the "Two Jalals" -  a commentary written by Jalāl ad-Dīn al-Maḥalli and his student Jalāl ad-Dīn as-Suyūtī. It is known for his brevity and concision. This is the default tafsir. 
+2. `ibnkathir` - the tafsir of Ibn Kathir (d. 774 AH) entitled *al-Qurʾān al-ʿAẓeem*, or more simply, *Tafsir Ibn Kathir*, is a popular commentary on the Qurʾān based on Ibn Taymiyyah's exegetical style of quoting early Muslim authorities (the *salaf*).
+3. `tustari` - the tafsir of Sahl al-Tustarī (d. 283 AH), a Persian Ṣūfī mystic. 
+4. `qushayri` - the tafsir of Abūʾl Qāsim al-Qushayrī (d. 465 AH), entitled *Laṭāʾif al-Ishārāt*, ('Subtle Allusions').
+5. `kashani` - the tafsir of ʿAbd al-Razzāq al-Kāshānī (d. 730–6 AH).
+6. `wahidi` - *Asbab al-Nuzul* by 'Alī ibn Ahmad al-Wāhidī (d. 468 AH), which aims to collect and systemize information concerning all the known reasons and contexts for the revelation of particular Qur'anic verses.
+7. `kashf` - *Kashf al-asrār wa ʿuddat al-abrār* by Rashīd al-Dīn Maybudī, about whom little is known. It is the longest Sunni commentary in the Persian language.
+
+
 # Arabic Tafsir
 
-IslamBot is able to quote from 26 Arabic *tafaseer* (commentaries on the Qurʾān) for use with the `-atafsir` command (see the [documentation](https://github.com/galacticwarrior9/islambot/blob/master/README.md)). They are sourced from [altafsir.com](http://www.altafsir.com), and I have attempted to add a short description to each entry. 
-
-They are as follows: 
+Similarly, the bot is able to quote from 26 Arabic *tafaseer* for use with the `-atafsir` command. They are sourced from [altafsir.com](http://www.altafsir.com), and I have again attempted to add a short description to each one: 
 
 1. `ibnkathir` - the tafsir of Ibn Kathir (d. 774 AH) entitled *al-Qurʾān al-ʿAẓeem*, or more simply, *Tafsir Ibn Kathir*, is a popular commentary on the Qurʾān based on Ibn Taymiyyah's exegetical style of quoting early Muslim authorities (the *salaf*).
 2. `tabari` - the tafsir of Abū Jaʿfar Muḥammad ibn Jarīr al-Ṭabarī (d. 224 AH) entitled *Jāmiʿ al-bayān ʿan taʾwīl āy al-Qurʾān*, or more simply, *Tafsir al-Ṭabarī*, one of the most celebrated  *tafaseer* and one of the earliest to survive in full. 
@@ -15,7 +26,7 @@ They are as follows:
 9. `mawardi` - the tafsir of al-Mawardi (d. 448 AH) entitled *al-Nukat wal 'Uyūn*.
 10. `maturidi` - the tafsir of Abū Manṣūr al-Māturīdī (d. 333 AH), one of most celebrated Sunni theologians. It is entitled *Ta'wilat Ahl al-Sunnah*
 11. `duralmanthur` - *Dur al-Manthur*, the tafsir of the aforementioned Jalāl ad-Dīn as-Suyūtī.
-12. `nasafi` - the tafsir of Abū al-Barakat ʿAbd Allāh b. Aḥmad al-Nasafī (d. 710 AH) is an early abridgement of the combined works of al-Baydawi and al-Zamakhshari, with an emphasis on defending the Ḥanafī school.
+12. `nasafi` - the tafsir of Abū al-Barakat ʿAbd Allāh b. Aḥmad al-Nasafī (d. 710 AH) is an early abridgement of the combined works of al-Baydawi and al-Zamakhshari, with an emphasis on defending the Ḥanafī school of jurisprudence (*maddhab*).
 13. `samarqandi` - the tafsir of the Hanafite jurist Abū al-Layth al-Samarqandī (d. 373 AH). 
 14. `shawkani` - the tafsir of famous Yemenite scholar and revivalist Muḥammad ash-Shawkānī (d. 1250 AH), entitled *Fath al-Qadīr*
 15. `zamakhshari` - the tafsir of Abū al-Qāsim Maḥmūd b. ʿUmar al-Zamakhsharī (d. 538 AH), known for its deep linguistic analysis but also the propagation of the author's own Muʿtazilite views.
@@ -31,4 +42,4 @@ They are as follows:
 25. `ibnabdalsalam` - the tafsir of Izz al-Dīn ibn 'Abd al-Salam (d. 660 AH), the leading Shafi'ite theologian of his generation.
 26. `ibnashur` - the tafsir of Muhammad al-Ṭāhir ibn ʿĀshūr (d. 1394 AH) entitled *Tafsir Al-Tahrir wa-al-Tanwir* is widely regarded as one of the best tafaseer authored in the modern era. 
 27. `tustari` - the tafsir of Sahl al-Tustarī (d. 283 AH), a Persian Sufi mystic. 
-28. `qurayshi` - the tafsir of Abūʾl Qāsim al-Qushayrī (d. 465 AH), entitled *Laṭāʾif al-Ishārāt*, ('Subtle Allusions'). 
+28. `qushayri` - the tafsir of Abūʾl Qāsim al-Qushayrī (d. 465 AH), entitled *Laṭāʾif al-Ishārāt*, ('Subtle Allusions'). 
