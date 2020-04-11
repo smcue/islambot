@@ -16,10 +16,9 @@ async def on_ready():
     bot.remove_command('help')
 
     cog_list = ['hadith', 'hijricalendar', 'prayertimes', 'quran-morphology', 'quran', 'tafsir', 'tafsir-english',
-                'mushaf', "search", 'help', 'TopGG']
+                'mushaf', 'help', 'TopGG']
     for cog in cog_list:
         bot.load_extension(cog)
 
 token = open("token.txt", "r").read()
 bot.run(token.strip())
-

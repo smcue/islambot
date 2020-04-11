@@ -1,10 +1,9 @@
-from aiohttp import ClientSession
+import re
+import mysql.connector
+import aiohttp
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 from utils import makeEmbed
-import re
-import mysql.connector
-from mysql.connector import pooling
 from helpers import processRef, Specifics, prefix
 
 INVALID_TRANSLATION = "**Invalid translation**. List of translations: <https://github.com/galacticwarrior9/is" \
@@ -33,10 +32,17 @@ class Quran(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.session = ClientSession(loop=bot.loop)
+        self.session = aiohttp.ClientSession(loop=bot.loop)
         self.url1 = 'http://api.alquran.cloud/ayah/{}:{}/{}'
         self.url2 = 'http://staging.quran.com:3000/api/v3/chapters/{}/verses?page=1&limit=1&offset={}&translations[]={}'
-        self.quranComEditions = ['haleem', 'taqiusmani', 'clearquran', 85, 84, 131]
+        self.quranComEditions = ['haleem', 'taqiusmani', 'khattab', 'amharic',
+                                 'chechen', 'finnish', 'indonesian', 'ghali'
+                                 'tajik', 85, 84, 131, 17, 30, 33, 74, 106, 87]
+        self.mysqlDetails = open('mysql.txt').read().splitlines()
+        self.host = self.mysqlDetails[0]
+        self.user = self.mysqlDetails[1]
+        self.password = self.mysqlDetails[2]
+        self.database = self.mysqlDetails[3]
 
     @staticmethod
     def formatEdition(edition):
@@ -53,9 +59,15 @@ class Quran(commands.Cog):
             'khoury': 'de.khoury',
             'zaidan': "de.zaidan",
             'divehi': 'dv.divehi',
+            'amharic': 87,
             'haleem': 85,
             'taqiusmani': 84,
-            'clearquran': 131,
+            'khattab': 131,
+            'ghali': 17,
+            'finnish': 30,
+            'indonesian': 33,
+            'tajik': 74,
+            'chechen': 106,
             'sahih': 'en.sahih',
             'ahmedali': 'en.ahmedali',
             'arberry': 'en.arberry',
@@ -77,7 +89,6 @@ class Quran(commands.Cog):
             'french': 'fr.hamidullah',
             'hausa': 'ha.gumi',
             'hindi': 'ha.hindi',
-            'indonesian': 'id.indonesian',
             'italian': 'it.piccardo',
             'japanese': 'ja.japanese',
             'korean': 'ko.korean',
@@ -125,9 +136,15 @@ class Quran(commands.Cog):
     @staticmethod
     def getEditionName(edition):
         editionNames = {
-            85: 'Muhammad A. S. Abdel Haleem',
+            85: 'Abdel Haleem',
             131: "Dr. Mustafa Khattab, The Clear Qur'an",
-            84: "Mufti Taqi Usmani"
+            84: "Mufti Taqi Usmani",
+            17: "Dr. Ghali",
+            30: "Finnish",
+            33: "Indonesian (Ministry of Religious Affairs)",
+            74: "Tajik (Abdolmohammad Ayati)",
+            106: "Chechen (Magomed Magomedov)",
+            87: "Amharic (Sadiq and Sani)"
         }
         return editionNames[edition]
 
@@ -142,7 +159,7 @@ class Quran(commands.Cog):
         else:
             try:
                 self.formatEdition(translation)
-                connection = MySQL.connection_pool.get_connection()
+                connection = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password, database=self.database)
                 cursor = connection.cursor(buffered=True)
                 sql = "UPDATE bot SET translation = %s WHERE server = %s"
                 cursor.execute(sql, (translation, ctx.message.guild.id))
@@ -163,7 +180,7 @@ class Quran(commands.Cog):
             if edition is None:
 
                 try:
-                    connection = MySQL.connection_pool.get_connection()
+                    connection = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password, database=self.database)
                     cursor = connection.cursor(buffered=True)
                     cursor.execute(f"SELECT translation FROM bot WHERE server = {ctx.message.guild.id}")
                     result = cursor.fetchone()
@@ -247,7 +264,6 @@ class Quran(commands.Cog):
                 data = re.sub('[0-9]', '', data)
                 spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data
 
-
     async def getMetadata(self, spec, edition):
         async with self.session.get(self.url1.format(spec.surah, spec.minAyah, spec.edition)) as r:
             data = await r.json()
@@ -257,22 +273,6 @@ class Quran(commands.Cog):
             return data['data']['surah']['englishName'], self.getEditionName(edition), data['data']['surah']['englishNameTranslation'], data['data']['surah']['revelationType']
         else:
             return data['data']['surah']['englishName'], data['data']['edition']['name'], data['data']['surah']['englishNameTranslation'], data['data']['surah']['revelationType'],
-
-
-class MySQL:
-    mysqlDetails = open('mysql.txt').read().splitlines()
-    host = mysqlDetails[0]
-    user = mysqlDetails[1]
-    password = mysqlDetails[2]
-    database = mysqlDetails[3]
-
-    connection_pool = mysql.connector.pooling.MySQLConnectionPool(pool_name="quran_pool",
-                                                                  pool_size=1,
-                                                                  pool_reset_session=True,
-                                                                  host=host,
-                                                                  database=database,
-                                                                  user=user,
-                                                                  password=password)
 
 
 # Register as cog
