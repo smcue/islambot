@@ -19,10 +19,10 @@ An Islamic bot for Discord with the following features:
 IslamBot is licensed under the [GNU GPL v3.0](https://github.com/galacticwarrior9/islambot/blob/master/LICENSE). You are welcome to use the code for your own purposes, on the condition it is made open source and credit is given.
 
 
-## Qu'ran 
+## Qur'an
 
 ### -quran
-**-quran** allows you to quote Qu'ran verses in English, with an optional translation.
+**-quran** allows you to quote Qur'an verses in English, with an optional translation.
 
 ```
 -quran <surah>:<verse(s)> [translation]
@@ -31,11 +31,11 @@ IslamBot is licensed under the [GNU GPL v3.0](https://github.com/galacticwarrior
 For example:
 
 ```
--quran 1:1-7 yusufali 
+-quran 1:1-7 khattab 
 ```
-The above command would quote Surah 1, Verses 1-7 (Surah al-Fatihah) using the translation of Yusuf Ali.
+The above command would quote Surah 1, Verses 1-7 (Surah al-Fatihah) using the translation of Dr Mustafa Khattab.
 
-#### Valid translation editions
+#### Valid translations
 
 [Click here for a list of valid translations.](https://github.com/galacticwarrior9/islambot/blob/master/Translations.md)
 
@@ -62,7 +62,7 @@ The above command would set the default Qur'an translation to Sahih Internationa
 ### -aquran
 **-aquran** functions in the same way as **-quran**, but quotes the verse in Arabic.
 
-For example, to quote the first verse of the Qu'ran:
+For example, to quote the first verse of the Qur'an:
 ```
 -aquran 1:1
 ```
@@ -78,7 +78,7 @@ For example:
 ```
 -morphology 1:2:4
 ```
-The above would analyse the morphology of the 4th word of the 2nd verse of the 1st chapter of the Qur'an. 
+The above would analyse the morphology of the 4th word of the 2nd verse of the 1st chapter of the Qur'an. The bot will also show the syntax of the verse the word is in, if the data is available.
 
 
 ### -mushaf
@@ -142,7 +142,9 @@ For example, to quote the second hadith in Chapter 1 of Sahih Bukhari:
 -hadith bukhari 1:2
 ```
 
-The above would scrape the hadith from https://sunnah.com/bukhari/1/2
+The above would fetch the hadith from https://sunnah.com/bukhari/1/2
+
+Alternatively, you can simply type the sunnah.com link in chat. The bot will then send it if it is able to. 
 
 
 #### Valid hadith book names 
@@ -211,20 +213,4 @@ Converts a Hijri date to its corresponding Gregorian date.
 For example, to convert 17 Muharram 1407:
 ```
 -convertfromhijri 17-01-1407
-```
-
-## Search
-
-The bot can search several Islamic websites, including islamqa.org, islamqa.info and seekershub.org.
-
-### -search
-Search Islamic websites for a given query.
-
-```
--search <search query>
-```
-
-For example:
-```
--search Can Hanafis eat shrimp? 
 ```
