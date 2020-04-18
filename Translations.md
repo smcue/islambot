@@ -3,13 +3,25 @@
 To be used with `-quran` and `-settranslation`.
 
 **For example**: `-quran 1:1 bengali`
-**For example**: `-settranslation chinese`
 
-# 
+**For example**: `-settranslation khattab`
+
+##
+**Amharic** 
+
+`amharic` (Sadiq and Sani)
+##
+**Albanian**
+
+`ahmeti` (Sherif Ahmeti)
+
+`mehdiu` (Feti Mehdiu)
+
+`nahi` (Hasan Efendi Nahi)
+##
 **Azerbaijani** 
 
 `mammadaliyev` (Vasim Mammadaliyev and Ziya Bunyadov)
-
 
 `musayev` (Alikhan Musayev)
 ##
@@ -19,11 +31,15 @@ To be used with `-quran` and `-settranslation`.
 ##
 **Bulgarian**
 
-`theophanov` (Tzvetan Theophanov)
+`bulgarian` (Tzvetan Theophanov)
 ##
 **Bosnian**
 
-`mlivo` (Mustafa Mlivo)
+`bosnian` (Mustafa Mlivo)
+##
+**Chechen**
+
+`chechen` (Magomed Magomedov)
 ##
 **Chinese** (*Simplified*)
 
@@ -52,13 +68,13 @@ To be used with `-quran` and `-settranslation`.
 ##
 **English**
 
-`haleem` (Prof. Muhammad A. S. Abdel Haleem)
+`haleem` (Prof. Muhammad A. S. Abdel Haleem, *default*)
 
-`clearquran` (Dr. Mustafa Khattab, The Clear Qur'an)
+`khattab` (Dr. Mustafa Khattab, *The Clear Qur'an*)
+
+`sahih` (Sahih International)
 
 `taqiusmani` (Mufti Taqi Usmani) 
-
-`sahih` (Sahih International, *default*)
 
 `ahmedali` (Ahmed Ali)
 
@@ -80,13 +96,15 @@ To be used with `-quran` and `-settranslation`.
 
 `shakir` (Muhammad Shakir)
 
+`ghali` (Dr. Mohammad Mahmoud Ghali)
+
 `transliteration` (Transliteration) 
 ##
 **Spanish**
 
 `cortes` (Julio Cortes)
 ##
-**Farsi** (*Persian*)
+**Farsi** (Persian)
 
 `ansarian` (Hussain Ansarian)
 
@@ -97,6 +115,10 @@ To be used with `-quran` and `-settranslation`.
 `ghomshei` (Mahdi Elahi Ghomshei)
 
 `makarem` (Naser Makarem Shirazi)
+##
+**Finnish**
+
+`finnish`
 ##
 **French**
 
@@ -112,7 +134,7 @@ To be used with `-quran` and `-settranslation`.
 ##
 **Indonesian**
 
-`indonesian` 
+`indonesian` (Ministry of Religious Affairs)
 ##
 **Italian**
 
@@ -175,14 +197,6 @@ To be used with `-quran` and `-settranslation`.
 
 `somali` (Mahmud Muhammad Abduh)
 ##
-**Albanian**
-
-`ahmeti` (Sherif Ahmeti)
-
-`mehdiu` (Feti Mehdiu)
-
-`nahi` (Hasan Efendi Nahi)
-##
 **Swedish**
 
 `swedish` (Knut Bernström)
@@ -194,6 +208,10 @@ To be used with `-quran` and `-settranslation`.
 **Tamil**
 
 `tamil` (Jan Turst Foundation)
+##
+**Tajik**
+
+`tajik` (Abdolmohammad Ayati)
 ##
 **Thai**
 
