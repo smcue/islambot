@@ -157,8 +157,6 @@ class HadithSpecifics:
         txt = str(text) \
                 .replace('`', 'ʿ') \
                 .replace('\n', '') \
-                .replace('<i>', '*') \
-                .replace('</i>', '*') \
 
         return re.sub('\s+', ' ', txt)
 

@@ -133,22 +133,6 @@ class TafsirSpecifics:
         surah, ayah = ref.split(':')
         return surah, ayah
 
-    def makeEmbed(self, text, page, tafsirName, surah, ayah):
-        if text is not None and text is not '' and text is not ' ':
-
-            em = discord.Embed(title=f'Page {page}', colour=0x467f05)
-
-            fields = textwrap.wrap(text, 1024, break_long_words = False)
-            for x in fields:
-                em.add_field(name = '\u200b', value = x, inline = False)
-
-            tafsirName = tafsirName.replace('(', ' -  ') \
-                .replace(')', '')
-
-            em.set_author(name=f'{tafsirName} | {surah}:{ayah}', icon_url=icon)
-
-            return em
-
     def processText(self, content, tafsir):
         content = content.encode('cp1256').decode('cp1256')
 
@@ -187,6 +171,24 @@ class TafsirSpecifics:
 
         return text
 
+    def makeEmbed(self, text, page, tafsirName, surah, ayah):
+        if text is not None and text is not '' and text is not ' ':
+
+            tafsirName = tafsirName.replace('(', ' -  ') \
+                .replace(')', '')
+
+            em = discord.Embed(title=f'{tafsirName}', colour=0x467f05)
+            em.set_footer(text=f'Page {page}')
+
+            fields = textwrap.wrap(text, 1024, break_long_words = False)
+            for x in fields:
+                em.add_field(name = '\u200b', value = x, inline = False)
+
+            em.set_author(name=f'{surah}:{ayah}')
+            em.set_thumbnail(url=icon)
+
+            return em
+
 
 class Tafsir(commands.Cog):
 
@@ -211,7 +213,6 @@ class Tafsir(commands.Cog):
         em = t.makeEmbed(text, page, tafsirName, surah, ayah)
 
         msg = await ctx.send(embed=em)
-        await msg.add_reaction(emoji="⬅")
         await msg.add_reaction(emoji='➡')
 
     @commands.Cog.listener()
@@ -219,16 +220,17 @@ class Tafsir(commands.Cog):
         t = TafsirSpecifics()
         if reaction.message.author.id == 352815253828141056 and user.id != 352815253828141056:
             embed = reaction.message.embeds[0]
-
-            arabicName = embed.author.name.split('|', 1)[0][:-1]  # Delete last character as it's blank.
-
-            ref = embed.author.name.split('|', 1)[1].strip()
-            surah, ayah = t.processRef(ref)
-            page = int(embed.title.split()[1])
+            arabicName = embed.title # Delete last character as it's blank.
             tafsirID, tafsir = t.getTafsirIDFromArabic(arabicName)
+            ref = embed.author.name
+            surah, ayah = t.processRef(ref)
+            page = int(embed.footer.text.split()[1])
+            if page > 1:
+                await reaction.message.add_reaction(emoji="⬅")
 
             if reaction.emoji == '➡':
-                newPage = int(embed.title.split()[1]) + 1
+                await reaction.message.remove_reaction(emoji="➡", member=user)
+                newPage = int(embed.footer.text.split()[1]) + 1
                 formattedURL = t.makeURL(tafsirID, surah, ayah, newPage)
                 content = str(await t.getTafsir(formattedURL))
 
@@ -239,8 +241,9 @@ class Tafsir(commands.Cog):
                     await reaction.message.edit(embed=em)
 
             elif reaction.emoji == '⬅':
+                await reaction.message.remove_reaction(emoji="⬅", member=user)
                 if page > 1:
-                    newPage = int(embed.title.split()[1]) - 1
+                    newPage = int(embed.footer.split()[1]) - 1
                     formattedURL = t.makeURL(tafsirID, surah, ayah, newPage)
                     content = str(await t.getTafsir(formattedURL))
 

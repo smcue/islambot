@@ -4,7 +4,7 @@ import aiohttp
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 from utils import makeEmbed
-from helpers import processRef, Specifics, prefix
+from helpers import processRef, Specifics, prefix, convertToArabicNumber
 
 INVALID_TRANSLATION = "**Invalid translation**. List of translations: <https://github.com/galacticwarrior9/is" \
                       "lambot/blob/master/Translations.md>"
@@ -34,10 +34,10 @@ class Quran(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession(loop=bot.loop)
         self.url1 = 'http://api.alquran.cloud/ayah/{}:{}/{}'
-        self.url2 = 'http://staging.quran.com:3000/api/v3/chapters/{}/verses?page=1&limit=1&offset={}&translations[]={}'
+        self.url2 = 'http://api.quran.com:3000/api/v3/chapters/{}/verses?page=1&limit=1&offset={}&translations[]={}'
         self.quranComEditions = ['haleem', 'taqiusmani', 'khattab', 'amharic',
                                  'chechen', 'finnish', 'indonesian', 'ghali'
-                                 'tajik', 85, 84, 131, 17, 30, 33, 74, 106, 87]
+                                 'tajik', 85, 84, 101, 17, 30, 33, 74, 106, 87]
         self.mysqlDetails = open('mysql.txt').read().splitlines()
         self.host = self.mysqlDetails[0]
         self.user = self.mysqlDetails[1]
@@ -62,7 +62,7 @@ class Quran(commands.Cog):
             'amharic': 87,
             'haleem': 85,
             'taqiusmani': 84,
-            'khattab': 131,
+            'khattab': 101,
             'ghali': 17,
             'finnish': 30,
             'indonesian': 33,
@@ -137,7 +137,7 @@ class Quran(commands.Cog):
     def getEditionName(edition):
         editionNames = {
             85: 'Abdel Haleem',
-            131: "Dr. Mustafa Khattab, The Clear Qur'an",
+            101: "Dr. Mustafa Khattab",
             84: "Mufti Taqi Usmani",
             17: "Dr. Ghali",
             30: "Finnish",
@@ -156,47 +156,29 @@ class Quran(commands.Cog):
             await ctx.send(INVALID_TRANSLATION)
             return
 
-        else:
-            try:
-                self.formatEdition(translation)
-                connection = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password, database=self.database)
-                cursor = connection.cursor(buffered=True)
-                sql = "UPDATE bot SET translation = %s WHERE server = %s"
-                cursor.execute(sql, (translation, ctx.message.guild.id))
-                connection.commit()
-                connection.close()
+        try:
+            self.formatEdition(translation)
+            connection = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password, database=self.database)
+            cursor = connection.cursor(buffered=True)
+            createSQL = "INSERT IGNORE INTO bot (server, translation) VALUES (%s, %s)"
+            updateSQL = "UPDATE bot SET translation = %s WHERE server = %s"
+            cursor.execute(createSQL, (ctx.message.guild.id, translation))
+            cursor.execute(updateSQL, (translation, ctx.message.guild.id))
+            connection.commit()
+            connection.close()
 
-                await ctx.send(f"**Successfully updated default translation to `{translation}`!**")
+            await ctx.send(f"**Successfully updated default translation to `{translation}`!**")
 
-            except:
-                await ctx.send(INVALID_TRANSLATION)
+        except:
+            await ctx.send(INVALID_TRANSLATION)
 
     @commands.command(name="quran")
     async def quran(self, ctx, ref: str, edition: str = None):
         async with ctx.channel.typing():
 
-            # If no translation is specified, contact the MySQL database to see if the server set a default one.
-
+            # If no translation was specified, find a translation to use.
             if edition is None:
-
-                try:
-                    connection = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password, database=self.database)
-                    cursor = connection.cursor(buffered=True)
-                    cursor.execute(f"SELECT translation FROM bot WHERE server = {ctx.message.guild.id}")
-                    result = cursor.fetchone()
-                    connection.close()
-
-                    # If the server has not set a default translation, use Sahih International.
-                    if result is None:
-                        edition = "en.sahih"
-
-                    # Use the server default if found:
-                    else:
-                        edition = self.formatEdition(result[0])
-
-                # If the database cannot be reached, fall back to Sahih International.
-                except:
-                    edition = "en.sahih"
+                edition = self.getGuildTranslation(ctx.message.guild.id)
 
             # If a translation was specified in the command, check whether it is valid:
             else:
@@ -209,13 +191,12 @@ class Quran(commands.Cog):
             # Check if the verses need to be fetched from quran.com.
             if edition in self.quranComEditions:
                 quranCom = True
-
             else:
                 quranCom = False
 
             # Now fetch the verses:
             try:
-                quranSpec = self.getSpec(ref, edition=edition)
+                quranSpec = self.getSpec(ref, edition)
 
             except:
                 await ctx.send(INVALID_ARGUMENTS_ENGLISH.format(prefix))
@@ -232,17 +213,16 @@ class Quran(commands.Cog):
 
     @commands.command(name="aquran")
     async def aquran(self, ctx, *, ref: str):
-
         try:
             quranSpec = self.getSpec(ref)
         except:
             await ctx.send(INVALID_ARGUMENTS_ARABIC.format(prefix))
             return
 
-        surah_name = await self.getMetadata(quranSpec, edition = 'ar')
-        await self.getVerses(quranSpec, quranCom = False)
+        surah_name = await self.getMetadata(quranSpec, edition='ar')
+        await self.getVerses(quranSpec, False)
 
-        em = makeEmbed(fields=quranSpec.orderedDict, author=surah_name, author_icon=icon, colour=0x78c741, inline=False)
+        em = makeEmbed(fields=quranSpec.orderedDict, author=f'{surah_name}', author_icon=icon, colour=0x78c741, inline=False)
         await ctx.send(embed=em)
 
     @staticmethod
@@ -250,20 +230,68 @@ class Quran(commands.Cog):
         surah, min_ayah, max_ayah = processRef(ref)
         return QuranSpecifics(surah, min_ayah, max_ayah, edition)
 
+    """
+    Contacts the MySQL database to see if the server set a default transltion.
+    If it hasn't, then we use the bot's default one.
+    """
+    def getGuildTranslation(self, guildID):
+        try:
+            connection = mysql.connector.connect(host=self.host, user=self.user, passwd=self.password,
+                                                 database=self.database)
+            cursor = connection.cursor(buffered=True)
+            cursor.execute(f"SELECT translation FROM bot WHERE server = {guildID}")
+            result = cursor.fetchone()[0]
+            connection.close()
+        except:
+            result = 'haleem'
+        result = self.formatEdition(result)
+        return result
+
+    """
+    Fetches the verses' text.
+    We use the quran.com API or GlobalQuran API depending on the translation used. 
+    """
     async def getVerses(self, spec, quranCom):
         for verse in range(spec.minAyah, spec.maxAyah):
             if quranCom is False:
                 async with self.session.get(self.url1.format(spec.surah, verse, spec.edition)) as r:
                     data = await r.json()
-                spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data['data']['text']
+                try:
+                    data = data['data']['text']
+                except IndexError:  # This is triggered if the verse doesn't exist.
+                    return
+                await self.makeOrderedDict(spec, verse, data)
             else:
                 async with self.session.get(self.url2.format(spec.surah, verse - 1, spec.edition)) as r:
                     data = await r.json()
-                data = data['verses'][0]['translations'][0]['text']
-                data = re.sub('<[^<]+?>', '', data)
-                data = re.sub('[0-9]', '', data)
-                spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data
+                try:
+                    data = data['verses'][0]['translations'][0]['text']
+                    data = re.sub('<[^<]+?>', '', data)
+                    data = re.sub('[0-9]', '', data)
+                except IndexError:  # This is triggered if the verse doesn't exist.
+                    return
+                await self.makeOrderedDict(spec, verse, data)
 
+    """
+    Make an ordered dict from the verse text.
+    The verse text is truncated if it is too long for the embed field. 
+    """
+    async def makeOrderedDict(self, spec, verse, data):
+        if spec.edition == 'ar':
+            if len(data) <= 1024:
+                spec.orderedDict['{}:{}'.format(convertToArabicNumber(str(spec.surah)), convertToArabicNumber(str(verse)))] = data
+            else:
+                spec.orderedDict['{}:{}'.format(convertToArabicNumber(str(spec.surah)), convertToArabicNumber(str(verse)))] = data[0:1021] + '...'
+
+        else:
+                if len(data) <= 1024:
+                    spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data
+                else:
+                    spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data[0:1021] + '...'
+
+    """
+    Get the surah name in Arabic and English along with the verse revelation type.
+    """
     async def getMetadata(self, spec, edition):
         async with self.session.get(self.url1.format(spec.surah, spec.minAyah, spec.edition)) as r:
             data = await r.json()
@@ -278,3 +306,4 @@ class Quran(commands.Cog):
 # Register as cog
 def setup(bot):
     bot.add_cog(Quran(bot))
+
