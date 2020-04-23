@@ -8,7 +8,7 @@
 
 An Islamic bot for Discord with the following features:
 
-* *Qur'an*, with support for 75 translations.
+* *Qur'an*, with support for 75+ translations.
 * *Tafsir*, with 7 available in English and 28 in Arabic.
 * *Hadith* in English and Arabic, from [sunnah.com](https://sunnah.com).
 * Prayer times for any location in the world. 
@@ -169,15 +169,13 @@ For example:
 -hadith qudsi 32
 ```
 
-Not all hadith are indexed correctly on sunnah.com, and not all use the same numbering as in the books - so please keep this in mind.
-
 ### -ahadith
 **-ahadith** is the same as -hadith, but allows you to quote hadith in Arabic. 
 
 
 ## Prayer (Salaah) Times
 
-The bot can also fetch the prayer times for any location. More precise locations (e.g. addresses) will yield more accurate prayer times. 
+The bot can also fetch the prayer times for any location. More precise locations will yield more accurate prayer times. 
 
 ```
 -prayertimes <location>
@@ -193,7 +191,9 @@ For example:
 
 ## Hijri Calendar
 
-The bot can also (rather inaccurately) convert both ways between the Hijri and Gregorian calendars.
+### -hijridate
+
+This shows the current Hijri date (in the US).
 
 ### -converttohijri
 Converts a Gregorian date to its corresponding Hijri date.
