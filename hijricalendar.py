@@ -1,5 +1,7 @@
 import aiohttp
-from discord.ext import commands
+import discord
+from helpers import get_site_source
+from discord.ext import commands, tasks
 
 
 class HijriCalendar(commands.Cog):
@@ -9,6 +11,8 @@ class HijriCalendar(commands.Cog):
         self.session = aiohttp.ClientSession(loop=bot.loop)
         self.toGregorian_url = 'https://api.aladhan.com/hToG?date={}'
         self.toHijri_url = 'https://api.aladhan.com/gToH?date={}'
+        self.current_hijri_url = 'https://www.islamicfinder.org/islamic-date-converter/'
+        self.updateHijriDate.start()
 
     @commands.command(name='convertfromhijri')
     async def converthijridate(self, ctx, date: str):
@@ -43,6 +47,12 @@ class HijriCalendar(commands.Cog):
         except:
             await ctx.send('An error occurred when trying to convert the date.')
 
+    @commands.command(name='hijridate')
+    async def hijridate(self, ctx):
+
+        date = await self.getCurrentHijriDate()
+        await ctx.send(f'Today is **{date}**.')
+
     async def getConvertedDate(self, date, getHijri = True):
 
         if getHijri:
@@ -64,6 +74,25 @@ class HijriCalendar(commands.Cog):
         year = calendar['year']
 
         return day, month, year
+
+    async def getCurrentHijriDate(self):
+
+        content = await get_site_source(self.current_hijri_url)
+        date = content.find('span', attrs={'class':'date-converted-date'})
+        date = date.text[:-1] + " AH"
+        date = date.replace(',', '')\
+            .replace('Shaban', 'Shaʿbān') \
+            .replace('Ramadan', 'Ramaḍān') \
+            .replace('Shawwal', 'Shawwāl') \
+            .replace('Dhul Qadah', 'Dhū al-Qa‘dah') \
+            .replace('Dhul Hijjah', 'Dhū al-Ḥijjah')
+        return date
+
+    @tasks.loop(hours=1)
+    async def updateHijriDate(self):
+        date = await self.getCurrentHijriDate()
+        game = discord.Game(f"-ihelp | {date}")
+        await self.bot.change_presence(activity=game)
 
     @staticmethod
     def isInCorrectFormat(date):

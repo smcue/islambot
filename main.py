@@ -10,13 +10,12 @@ bot = discord.ext.commands.AutoShardedBot(command_prefix=prefix, description=des
 async def on_ready():
 
     print(f'Logged in as {bot.user.name} ({bot.user.id}) on {len(bot.guilds)} servers')
-    game = discord.Game(f"-ihelp | {len(bot.guilds)} servers")
-    await bot.change_presence(activity=game)
 
     bot.remove_command('help')
 
     cog_list = ['hadith', 'hijricalendar', 'prayertimes', 'quran-morphology', 'quran', 'tafsir', 'tafsir-english',
                 'mushaf', 'help']
+
     for cog in cog_list:
         bot.load_extension(cog)
 

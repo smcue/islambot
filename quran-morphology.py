@@ -72,7 +72,6 @@ class QuranMorphology(commands.Cog):
     def getSyntaxImage(self, source, word):
         javascript = str(source.find("div", {"class": "graph"}))
         graphID = (javascript.split("url('/"))[1].split("')")[0]
-        print(graphID)
         imageURL = f'http://corpus.quran.com/{graphID}&token={word}'
         return imageURL
 

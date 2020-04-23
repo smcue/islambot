@@ -37,7 +37,9 @@ class Quran(commands.Cog):
         self.url2 = 'http://api.quran.com:3000/api/v3/chapters/{}/verses?page=1&limit=1&offset={}&translations[]={}'
         self.quranComEditions = ['haleem', 'taqiusmani', 'khattab', 'amharic',
                                  'chechen', 'finnish', 'indonesian', 'ghali'
-                                 'tajik', 85, 84, 101, 17, 30, 33, 74, 106, 87]
+                                 'tajik', 'sahih', 'french', 'diyanet', 'turkish', 'hindi', 'maududi', 'czech',
+                                 'ukrainian', 'spanish', 20, 85, 84, 101, 17, 30, 33, 74, 106, 87, 31, 77, 82, 95, 26,
+                                 104, 83]
         self.mysqlDetails = open('mysql.txt').read().splitlines()
         self.host = self.mysqlDetails[0]
         self.user = self.mysqlDetails[1]
@@ -68,7 +70,8 @@ class Quran(commands.Cog):
             'indonesian': 33,
             'tajik': 74,
             'chechen': 106,
-            'sahih': 'en.sahih',
+            'czech': 26,
+            'sahih': 20,
             'ahmedali': 'en.ahmedali',
             'arberry': 'en.arberry',
             'asad': 'en.asad',
@@ -80,15 +83,15 @@ class Quran(commands.Cog):
             'yusufali': 'en.yusufali',
             'shakir': 'en.shakir',
             'transliteration': 'en.transliteration',
-            'spanish': 'es.cortes',
+            'spanish': 83,
             'ansarian': 'fa.ansarian',
             'ayati': 'fa.ayati',
             'fooladvand': 'fa.fooladvand',
             'ghomshei': 'fa.ghomshei',
             'makarem': 'fa.makarem',
-            'french': 'fr.hamidullah',
+            'french': 31,
             'hausa': 'ha.gumi',
-            'hindi': 'ha.hindi',
+            'hindi': 82,
             'italian': 'it.piccardo',
             'japanese': 'ja.japanese',
             'korean': 'ko.korean',
@@ -113,8 +116,8 @@ class Quran(commands.Cog):
             'thai': 'th.thai',
             'ates': 'tr.ates',
             'bulac': 'tr.bulac',
-            'turkish': 'tr.diyanet',
-            'diyanet': 'tr.diyanet',
+            'turkish': 77,
+            'diyanet': 77,
             'golpinarli': 'tr.golpinarli',
             'ozturk': 'tr.ozturk',
             'vakfi': 'tr.vakfi',
@@ -126,10 +129,12 @@ class Quran(commands.Cog):
             'jalandhry': 'ur.jalandhry',
             'jawadi': 'ur.jawadi',
             'qadri': 'ur.qadri',
-            'maududi': 'ur.maududi',
+            'urdu': 'ur.maududi',
+            'maududi.en': 95,
             'malay': 'ms.basmeih',
             'uzbek': 'uz.sodik',
-            'chinese': 'zh.jian'
+            'chinese': 'zh.jian',
+            'ukrainian': 104
         }
         return editionDict[edition]
 
@@ -141,10 +146,19 @@ class Quran(commands.Cog):
             84: "Mufti Taqi Usmani",
             17: "Dr. Ghali",
             30: "Finnish",
-            33: "Indonesian (Ministry of Religious Affairs)",
+            33: "Bahasa Indonesia (Kementerian Agama)",
             74: "Tajik (Abdolmohammad Ayati)",
             106: "Chechen (Magomed Magomedov)",
-            87: "Amharic (Sadiq and Sani)"
+            87: "አማርኛ (Sadiq & Sani)",
+            20: 'Sahih International',
+            31: 'Français (Muhammad Hamidullah)',
+            77: 'Türkçe (Diyanet İşleri)',
+            81: 'Kurdî (Burhan Muhammad-Amin)',
+            82: 'हिन्दी (Suhel Farooq Khan)',
+            95: 'Abul Ala Maududi (with tafsir)',
+            26: 'Čeština',
+            104: 'Українська мова (Mykhaylo Yakubovych)',
+            83: 'Español (Sheikh Isa García)'
         }
         return editionNames[edition]
 
@@ -178,7 +192,11 @@ class Quran(commands.Cog):
 
             # If no translation was specified, find a translation to use.
             if edition is None:
-                edition = self.getGuildTranslation(ctx.message.guild.id)
+                try:
+                    edition = self.getGuildTranslation(ctx.message.guild.id)
+                    edition = self.formatEdition(edition)
+                except AttributeError:
+                    edition = 85
 
             # If a translation was specified in the command, check whether it is valid:
             else:
@@ -244,7 +262,6 @@ class Quran(commands.Cog):
             connection.close()
         except:
             result = 'haleem'
-        result = self.formatEdition(result)
         return result
 
     """
