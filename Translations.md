@@ -98,11 +98,13 @@ To be used with `-quran` and `-settranslation`.
 
 `ghali` (Dr. Mohammad Mahmoud Ghali)
 
+`maududi.en` (Abul Ala Maududi)
+
 `transliteration` (Transliteration) 
 ##
 **Spanish**
 
-`cortes` (Julio Cortes)
+`spanish` (Sheikh Isa García)
 ##
 **Farsi** (Persian)
 
@@ -226,6 +228,10 @@ To be used with `-quran` and `-settranslation`.
 **Tatar**
 
 `tatar` (Yakub ibn Nugman)
+##
+**Ukrainian**
+
+`uzbek` (Mykhaylo Yakubovych)
 ##
 **Uyghur**
 
