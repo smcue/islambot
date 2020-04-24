@@ -49,6 +49,7 @@ class QuranMorphology(commands.Cog):
         em.set_author(name=f"Qurʾān {surah}:{verse}, Word {word}", icon_url=icon)
         em.add_field(name='Morphology', value=f'From right to left: \n {morphology} ({grammar.text})', inline=False)
         em.add_field(name='Information', value=f'{paragraph.text}', inline=False)
+
         if syntax is True:
             em.set_image(url=syntaxImage)
             em.set_thumbnail(url=wordImage)

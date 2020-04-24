@@ -19,7 +19,7 @@ INVALID_ARGUMENTS_ENGLISH = "Invalid arguments! Do `{0}aquran [surah]:[ayah]`. E
 
 SQL_ERROR = "There was an error connecting to the database."
 
-icon = 'http://lh5.ggpht.com/2BfAv_esGGNfXvkhNiwA-77S7145Z7zDGui98OMG2XqBNqjHx7t4Ya-uLZkuynroQ6M=w300'
+icon = 'https://cdn6.aptoide.com/imgs/6/a/6/6a6336c9503e6bd4bdf98fda89381195_icon.png?w=256'
 
 
 class QuranSpecifics(Specifics):
@@ -225,7 +225,7 @@ class Quran(commands.Cog):
             await self.getVerses(quranSpec, quranCom)
 
             em = makeEmbed(fields=quranSpec.orderedDict, author=f"Surah {surah_name} ({englishSurahName})",
-                           author_icon=icon, colour=0x78c741, inline=False)
+                           author_icon=icon, colour=0x048c28, inline=False)
             em.set_footer(text=f'Translation: {readableEdition} | {revelationType}')
             await ctx.send(embed=em)
 
@@ -240,7 +240,7 @@ class Quran(commands.Cog):
         surah_name = await self.getMetadata(quranSpec, edition='ar')
         await self.getVerses(quranSpec, False)
 
-        em = makeEmbed(fields=quranSpec.orderedDict, author=f'{surah_name}', author_icon=icon, colour=0x78c741, inline=False)
+        em = makeEmbed(fields=quranSpec.orderedDict, author=f'{surah_name}', author_icon=icon, colour=0x048c28, inline=False)
         await ctx.send(embed=em)
 
     @staticmethod

@@ -1,3 +1,4 @@
+
 # IslamBot
 
 [![Discord Bots](https://top.gg/api/widget/status/352815253828141056.svg)](https://top.gg/bot/352815253828141056)
@@ -22,14 +23,21 @@ IslamBot is licensed under the [GNU GPL v3.0](https://github.com/galacticwarrior
 ## Qur'an
 
 ### -quran
-**-quran** allows you to quote Qur'an verses in English, with an optional translation.
+**-quran** allows you to quote verses from the Qur'an. You can optionally specify a translation (see **Valid Translations** below). If you do not, the bot will send the verses in English.
 
+**To get a single verse:**
 ```
--quran <surah>:<verse(s)> [translation]
+-quran <surah>:<verse> <translation>
 ```
-
 For example:
-
+```
+-quran 1:1 french
+```
+**To get multiple verses:**
+```
+-quran <surah>:<firstVerse>-<lastVerse> <translation>
+```
+For example:
 ```
 -quran 1:1-7 khattab 
 ```
@@ -42,7 +50,7 @@ The above command would quote Surah 1, Verses 1-7 (Surah al-Fatihah) using the t
 
 #### -settranslation
 
-This command allows you to change the default translation of `-quran` on your server. You must have the `Manage Server` or `Administrator` permission to use this command. 
+**-settranslation** allows you to change the default translation of `-quran` on your server. You must have the `Manage Server` or `Administrator` permission to use this command. 
 
 ```
 -settranslation <translation>
@@ -60,7 +68,7 @@ The above command would set the default Qur'an translation to Sahih Internationa
 
 
 ### -aquran
-**-aquran** functions in the same way as **-quran**, but quotes the verse in Arabic.
+**-aquran** functions exactly like  **-quran**, but sends the verses in Arabic.
 
 For example, to quote the first verse of the Qur'an:
 ```
@@ -82,17 +90,22 @@ The above would analyse the morphology of the 4th word of the 2nd verse of the 1
 
 
 ### -mushaf
-**-mushaf** fetches the image of the page on which a verse would be on a standard *Medina Mushaf*. 
-
+**-mushaf** sends the page containing a Qur'anic verse on a standard mushaf.
 ```
 -mushaf <surah>:<verse>
 ```
-
 For example:
 ```
 -mushaf 1:2
 ```
 The above would send an image of the page containing Qur'an 1:2 on a *Medina Mushaf*. 
+
+If you want a page with color-coded *tajweed* rules, add 'tajweed' to the end of the command.
+
+For example:
+```
+-mushaf 112:1 tajweed
+```
 
 
 

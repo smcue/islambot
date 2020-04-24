@@ -19,6 +19,7 @@ INVALID_INPUT = f'Invalid arguments! Please do `{prefix}hadith (book name)' \
 
 URL_FORMAT = "https://sunnah.com/{}/{}"
 
+
 class HadithGrading:
     def __init__(self):
         self.narrator = None
@@ -32,6 +33,7 @@ class HadithGrading:
         self.arabic_chapter_name = None
         self.chapter_name = None
         self.kitabName = None
+
 
 class HadithSpecifics:
     def __init__(self, book_name, session, isEng, ref):

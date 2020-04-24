@@ -220,7 +220,7 @@ class Tafsir(commands.Cog):
         t = TafsirSpecifics()
         if reaction.message.author.id == 352815253828141056 and user.id != 352815253828141056:
             embed = reaction.message.embeds[0]
-            arabicName = embed.title # Delete last character as it's blank.
+            arabicName = embed.title  # Delete last character as it's blank.
             tafsirID, tafsir = t.getTafsirIDFromArabic(arabicName)
             ref = embed.author.name
             surah, ayah = t.processRef(ref)
