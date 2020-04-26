@@ -35,11 +35,6 @@ class Quran(commands.Cog):
         self.session = aiohttp.ClientSession(loop=bot.loop)
         self.url1 = 'http://api.alquran.cloud/ayah/{}:{}/{}'
         self.url2 = 'http://api.quran.com:3000/api/v3/chapters/{}/verses?page=1&limit=1&offset={}&translations[]={}'
-        self.quranComEditions = ['haleem', 'taqiusmani', 'khattab', 'amharic',
-                                 'chechen', 'finnish', 'indonesian', 'ghali'
-                                 'tajik', 'sahih', 'french', 'diyanet', 'turkish', 'hindi', 'maududi', 'czech',
-                                 'ukrainian', 'spanish', 20, 85, 84, 101, 17, 30, 33, 74, 106, 87, 31, 77, 82, 95, 26,
-                                 104, 83]
         self.mysqlDetails = open('mysql.txt').read().splitlines()
         self.host = self.mysqlDetails[0]
         self.user = self.mysqlDetails[1]
@@ -53,7 +48,7 @@ class Quran(commands.Cog):
             'musayev': 'az.musayev',
             'bengali': 'bn.bengali',
             'bulgarian': 'bg.theophanov',
-            'bosnian': 'bs.mlivo',
+            'bosnian': 25,
             'hrbek': 'cs.hrbek',
             'nykl': "cs.nykl",
             'aburida': 'de.aburida',
@@ -76,11 +71,11 @@ class Quran(commands.Cog):
             'arberry': 'en.arberry',
             'asad': 'en.asad',
             'daryabadi': 'en.daryabadi',
-            'hilali': 'en.hilali',
-            'pickthall': 'en.pickthall',
+            'hilali': 18,
+            'pickthall': 19,
             'qaribullah': 'en.qaribullah',
             'sarwar': 'en.sarwar',
-            'yusufali': 'en.yusufali',
+            'yusufali': 22,
             'shakir': 'en.shakir',
             'transliteration': 'en.transliteration',
             'spanish': 83,
@@ -90,33 +85,32 @@ class Quran(commands.Cog):
             'ghomshei': 'fa.ghomshei',
             'makarem': 'fa.makarem',
             'french': 31,
-            'hausa': 'ha.gumi',
+            'hausa': 32,
             'hindi': 82,
-            'italian': 'it.piccardo',
+            'italian': 34,
             'japanese': 'ja.japanese',
             'korean': 'ko.korean',
-            'kurdish': 'ku.asan',
-            'malayalam': 'ml.malayalam',
-            'dutch': 'nl.keyzar',
+            'kurdish': 	81,
+            'malayalam': 37,
+            'dutch': 40,
             'norwegian': 'no.berg',
             'polish': 'pl.bielawskiego',
             'portuguese': 'pt.elhayek',
             'romanian': 'ro.grigore',
-            'kuliev': 'ru.kuliev',
+            'kuliev': 45,
             'osmanov': 'ru.osmanov',
             'porokhova': 'ru.porokhova',
             'sindhi': 'sd.amroti',
-            'somali': 'so.abduh',
+            'somali': 46,
             'ahmeti': 'sq.ahmeti',
             'mehdiu': 'sq.mehdiu',
             'nahi': 'sq.nahi',
-            'swedish': 'sv.bernstrom',
+            'swedish': 48,
             'swahili': 'sw.barwani',
             'tamil': 'ta.tamil',
             'thai': 'th.thai',
             'ates': 'tr.ates',
             'bulac': 'tr.bulac',
-            'turkish': 77,
             'diyanet': 77,
             'golpinarli': 'tr.golpinarli',
             'ozturk': 'tr.ozturk',
@@ -129,12 +123,16 @@ class Quran(commands.Cog):
             'jalandhry': 'ur.jalandhry',
             'jawadi': 'ur.jawadi',
             'qadri': 'ur.qadri',
-            'urdu': 'ur.maududi',
+            'urdu': 97,
+            'maududi': 97,
+            'junagarhi': 54,
             'maududi.en': 95,
-            'malay': 'ms.basmeih',
+            'malay': 39,
             'uzbek': 'uz.sodik',
             'chinese': 'zh.jian',
-            'ukrainian': 104
+            'ukrainian': 104,
+            'abuadel': 79,
+            'maranao': 38
         }
         return editionDict[edition]
 
@@ -145,6 +143,7 @@ class Quran(commands.Cog):
             101: "Dr. Mustafa Khattab",
             84: "Mufti Taqi Usmani",
             17: "Dr. Ghali",
+            22: "Yusuf Ali",
             30: "Finnish",
             33: "Bahasa Indonesia (Kementerian Agama)",
             74: "Tajik (Abdolmohammad Ayati)",
@@ -158,9 +157,52 @@ class Quran(commands.Cog):
             95: 'Abul Ala Maududi (with tafsir)',
             26: 'Čeština',
             104: 'Українська мова (Mykhaylo Yakubovych)',
-            83: 'Español (Sheikh Isa García)'
+            83: 'Español (Sheikh Isa García)',
+            37: 'മലയാളം (Abdul Hameed & Kunhi Mohammed)',
+            19: 'Pickthall',
+            18: 'Muhsin Khan & Hilali',
+            34: 'Italiano (Hamza Roberto Piccardo)',
+            39: 'Bahasa Melayu (Abdullah Muhammad Basmeih)',
+            97: 'اردو, (ابو الاعلی مودودی)',
+            54: 'اردو, (محمد جوناگڑھی)',
+            40: 'Nederlands (Salomo Keyzer)',
+            25: 'Bosanski',
+            45: 'Русский (Эльми́р Кули́ев)',
+            79: 'Русский (Абу Адель)',
+            78: 'Русский (Министерство вакуфов, Египта)',
+            48: 'Svenska (Knut Bernström)',
+            32: 'Hausa (Abubakar Mahmoud Gumi)',
+            38: 'Mëranaw',
+            46: 'Af-Soomaali (Mahmud Muhammad Abduh)'
         }
         return editionNames[edition]
+
+    @staticmethod
+    def getLanguageCode(edition):
+        languageCodes = {
+            31: 'fr',  # Hamidullah, French
+            97: 'ur',  # Maududi, Urdu
+            54: 'ur',  # Junagarhi, Urdu
+            'ur.jalandhry': 'ur',
+            'ur.jawadi': 'ur',
+            'ur.qadri': 'ur',
+            83: 'es',  # Isa Garcia, Spanish
+            40: 'nl',  # Salomo Keyzar, Dutch
+            25: 'bs',  # Bosnian
+            33: 'id',  # Indonesian
+            45: 'ru',  # Kuliev, Russian
+            78: 'ru',  # Ministry of Awqaf, Russian
+            79: 'ru',  # Abu Adel, Russian
+            48: 'sv',  # Knut Bernström, Swedish
+        }
+        return languageCodes[edition]
+
+    @staticmethod
+    def isQuranCom(edition):
+        if isinstance(edition, int):
+            return True
+        else:
+            return False
 
     @commands.command(name="settranslation")
     @has_permissions(manage_guild=True)
@@ -203,44 +245,50 @@ class Quran(commands.Cog):
                 try:
                     edition = self.formatEdition(edition)
                 except KeyError:
-                    await ctx.send(INVALID_TRANSLATION)
-                    return
+                    return await ctx.send(INVALID_TRANSLATION)
 
             # Check if the verses need to be fetched from quran.com.
-            if edition in self.quranComEditions:
-                quranCom = True
-            else:
-                quranCom = False
+            quranCom = self.isQuranCom(edition)
 
             # Now fetch the verses:
             try:
                 quranSpec = self.getSpec(ref, edition)
 
             except:
-                await ctx.send(INVALID_ARGUMENTS_ENGLISH.format(prefix))
-                return
+                return await ctx.send(INVALID_ARGUMENTS_ENGLISH.format(prefix))
 
-            surah_name, readableEdition, englishSurahName, revelationType = await self.getMetadata(quranSpec, edition)
+            surah_name, readableEdition, revelationType = await self.getMetadata(quranSpec, edition)
+            translatedSurahName = await self.getTranslatedSurahName(quranSpec, edition)
+
+            if revelationType == "makkah":
+                revelationType = "Meccan"
+            elif revelationType == "madinah":
+                revelationType = "Medinan"
 
             await self.getVerses(quranSpec, quranCom)
 
-            em = makeEmbed(fields=quranSpec.orderedDict, author=f"Surah {surah_name} ({englishSurahName})",
+            em = makeEmbed(fields=quranSpec.orderedDict, author=f"Surah {surah_name} ({translatedSurahName})",
                            author_icon=icon, colour=0x048c28, inline=False)
             em.set_footer(text=f'Translation: {readableEdition} | {revelationType}')
-            await ctx.send(embed=em)
+
+            if len(em) > 6000:
+                await ctx.send("This passage was too long to send.")
+
+            else:
+                await ctx.send(embed=em)
 
     @commands.command(name="aquran")
     async def aquran(self, ctx, *, ref: str):
         try:
             quranSpec = self.getSpec(ref)
         except:
-            await ctx.send(INVALID_ARGUMENTS_ARABIC.format(prefix))
-            return
+            return await ctx.send(INVALID_ARGUMENTS_ARABIC.format(prefix))
 
         surah_name = await self.getMetadata(quranSpec, edition='ar')
         await self.getVerses(quranSpec, False)
 
-        em = makeEmbed(fields=quranSpec.orderedDict, author=f'{surah_name}', author_icon=icon, colour=0x048c28, inline=False)
+        em = makeEmbed(fields=quranSpec.orderedDict, author=f' سورة {surah_name}', author_icon=icon, colour=0x048c28,
+                       inline=False)
         await ctx.send(embed=em)
 
     @staticmethod
@@ -270,7 +318,16 @@ class Quran(commands.Cog):
     """
     async def getVerses(self, spec, quranCom):
         for verse in range(spec.minAyah, spec.maxAyah):
-            if quranCom is False:
+            if spec.edition == 'ar':
+                async with self.session.get(f'http://api.quran.com:3000/api/v3/chapters/{spec.surah}/verses?page=1&limi'
+                                            f't=1&offset={verse - 1}') as r:
+                    data = await r.json()
+                try:
+                    data = data['verses'][0]['text_madani']
+                except IndexError:  # This is triggered if the verse doesn't exist.
+                    return
+                await self.makeOrderedDict(spec, verse, data)
+            elif quranCom is False:
                 async with self.session.get(self.url1.format(spec.surah, verse, spec.edition)) as r:
                     data = await r.json()
                 try:
@@ -301,23 +358,38 @@ class Quran(commands.Cog):
                 spec.orderedDict['{}:{}'.format(convertToArabicNumber(str(spec.surah)), convertToArabicNumber(str(verse)))] = data[0:1021] + '...'
 
         else:
-                if len(data) <= 1024:
-                    spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data
-                else:
-                    spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data[0:1021] + '...'
+            if len(data) <= 1024:
+                spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data
+            else:
+                spec.orderedDict['{}:{}'.format(spec.surah, verse)] = data[0:1021] + '...'
 
     """
-    Get the surah name in Arabic and English along with the verse revelation type.
+    Get the surah name in Arabic along with the revelation location.
     """
     async def getMetadata(self, spec, edition):
-        async with self.session.get(self.url1.format(spec.surah, spec.minAyah, spec.edition)) as r:
-            data = await r.json()
         if spec.edition == 'ar':
-            return data['data']['surah']['name']
-        elif spec.edition in self.quranComEditions:
-            return data['data']['surah']['englishName'], self.getEditionName(edition), data['data']['surah']['englishNameTranslation'], data['data']['surah']['revelationType']
+            async with self.session.get(f'http://api.quran.com/api/v3/chapters/{spec.surah}') as r:
+                data = await r.json()
+                return data['chapter']['name_arabic']
+        elif self.isQuranCom(edition):  # This will be true if we're using a quran.com translation
+            async with self.session.get(f'http://api.quran.com/api/v3/chapters/{spec.surah}') as r:
+                data = await r.json()
+                return data['chapter']['name_simple'], self.getEditionName(edition), data['chapter'][
+                    'revelation_place']
         else:
-            return data['data']['surah']['englishName'], data['data']['edition']['name'], data['data']['surah']['englishNameTranslation'], data['data']['surah']['revelationType'],
+            async with self.session.get(f'http://api.alquran.cloud/ayah/{spec.surah}:{spec.minAyah}/{spec.edition}') as r:
+                data = await r.json()
+                return data['data']['surah']['englishName'], data['data']['edition']['name'], data['data']['surah'][
+                    'revelationType']
+
+    async def getTranslatedSurahName(self, spec, edition):
+        try:
+            languageCode = self.getLanguageCode(edition)
+        except KeyError:
+            languageCode = None
+        async with self.session.get(f'http://api.quran.com/api/v3/chapters/{spec.surah}?language={languageCode}') as r:
+            data = await r.json()
+            return data['chapter']['translated_name']['name']
 
 
 # Register as cog

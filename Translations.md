@@ -1,3 +1,4 @@
+
 # Translations
 
 To be used with `-quran` and `-settranslation`.
@@ -35,7 +36,7 @@ To be used with `-quran` and `-settranslation`.
 ##
 **Bosnian**
 
-`bosnian` (Mustafa Mlivo)
+`bosnian` 
 ##
 **Chechen**
 
@@ -156,12 +157,15 @@ To be used with `-quran` and `-settranslation`.
 ##
 **Malayalam**
 
-`malayalam` 
+`malayalam`  (Abdul Hameed & Kunhi Mohammed)
 ##
 **Malay**
 
 `malay` (Abdullah Muhammad Basmeih)
+##
+**Maranao**
 
+`maranao` 
 ##
 **Dutch**
 
@@ -184,6 +188,10 @@ To be used with `-quran` and `-settranslation`.
 `romanian` (George Grigore)
 ##
 **Russian**
+
+`awqaf` (Ministry of Awqaf, Egypt)
+
+`abuadel` (Abu Adel)
 
 `kuliev` (Elmir Kuliev)
 
@@ -246,6 +254,8 @@ To be used with `-quran` and `-settranslation`.
 `jawadi` (Syed Zeeshan Haider Jawadi)
 
 `jalandhry` (Fateh Muhammad Jalandhry)
+
+`junagarhi` (Muhammad Junagarhi)
 ##
 **Uzbek**
 
