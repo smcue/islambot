@@ -10,7 +10,7 @@ async def get_site_source(url):
         async with session.get(url) as resp:
             text = await resp.read()
 
-    return BeautifulSoup(text.decode('utf-8','ignore'), 'html.parser')
+    return BeautifulSoup(text.decode('utf-8', 'ignore'), 'html.parser')
 
 
 class Specifics:
@@ -55,6 +55,24 @@ def convertToArabicNumber(number_string):
         '7': '٧',
         '8': '٨',
         '9': '۹',
+        ':': ':'
+    }
+    return "".join([dic[char] for char in number_string])
+
+
+def convertFromArabicNumber(number_string):
+    dic = {
+     '۹': '9',
+     '٨': '8',
+     '٧': '7',
+     '٦': '6',
+     '٥': '5',
+     '٤': '4',
+     '۳': '3',
+     '٢': '2',
+     '١': '1',
+     '۰': '0',
+     ':': ':'
     }
     return "".join([dic[char] for char in number_string])
 

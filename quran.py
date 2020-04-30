@@ -228,7 +228,7 @@ class Quran(commands.Cog):
         except:
             await ctx.send(INVALID_TRANSLATION)
 
-    @commands.command(name="quran")
+    @commands.command(name="quran", aliases=["Quran"])
     async def quran(self, ctx, ref: str, edition: str = None):
         async with ctx.channel.typing():
 
@@ -297,7 +297,7 @@ class Quran(commands.Cog):
         return QuranSpecifics(surah, min_ayah, max_ayah, edition)
 
     """
-    Contacts the MySQL database to see if the server set a default transltion.
+    Contacts the MySQL database to see if the server set a default translation.
     If it hasn't, then we use the bot's default one.
     """
     def getGuildTranslation(self, guildID):

@@ -1,257 +1,258 @@
+import discord
 import textwrap
+import re
 from discord.ext import commands
 from bs4 import BeautifulSoup
-import discord
-from aiohttp import ClientSession
+from helpers import get_site_source, convertToArabicNumber, convertFromArabicNumber
+
 
 icon = 'https://lh5.ggpht.com/lRz25mOFrRL42NuHtuSCneXbWV2Gtm7iYZ5eQbuA7JWUC3guWaTaQxNJ7j9rsRMCNAU=w150'
 
 dictName = {
-    'maturidi': 'تأويلات أهل السنة / الماتريدي',
-    'tabari': 'جامع البيان في تفسير القرآن / الطبري',
-    'ibnashur': 'التحرير والتنوير / ابن عاشور',
-    'qurtubi': 'الجامع لاحكام القرآن / القرطبي',
-    'mawardi': 'النكت والعيون / الماوردي',
-    'baghawi': 'معالم التنزيل / البغوي',
-    'nasafi': 'مدارك التنزيل وحقائق التأويل / النسفي',
-    'ibnabdalsalam': 'تفسير القرآن / ابن عبد السلام',
-    "sa'di": 'تيسير الكريم الرحمن في تفسير كلام المنان / عبد الرحمن بن ناصر بن السعدي',
-    'hashiyajalalayn': 'حاشية الصاوي / تفسير الجلالين',
-    'samarqandi': 'بحر العلوم / السمرقندي',
-    'razi': 'مفاتيح الغيب ، التفسير الكبير/ الرازي',
-    'ibnkathir': 'تفسير القرآن العظيم/ ابن كثير',
-    'shawkani': 'فتح القدير/ الشوكاني',
-    'ibnaljawzi': 'زاد المسير في علم التفسير/ ابن الجوزي',
-    'duralmanthur': 'الدر المنثور في التفسير بالمأثور/ السيوطي',
-    'zamakhshari': 'الكشاف / الزمخشري',
-    'baydawi': 'انوار التنزيل واسرار التأويل / البيضاوي',
-    'jalalayn': 'تفسير الجلالين / المحلي و السيوطي',
-    'jilani': 'تفسير الجيلاني / الجيلاني',
-    'ibnattiyah': 'المحرر الوجيز في تفسير الكتاب العزيز / ابن عطية',
-    "tha'labi": 'الكشف والبيان / الثعلبي',
-    'ibnjuzayy': 'التسهيل لعلوم التنزيل / ابن جزي الغرناطي',
-    'khazin': 'لباب التأويل في معاني التنزيل / الخازن',
-    'abuhayyan': 'البحر المحيط / ابو حيان',
-    "baqa'i": 'نظم الدرر في تناسب الآيات والسور / البقاعي',
-    'tustari': 'تفسير القرآن/ التستري مصنف و مدقق',
-    'salami': 'تفسير حقائق التفسير/ السلمي مصنف و مدقق',
-    'qushayri': 'تفسير لطائف الإشارات / القشيري'
+    'ibnatiyah': 'المحرر الوجيز — ابن عطية (٥٤٦ هـ)',
+    'tabari': 'جامع البيان — ابن جرير الطبري (٣١٠ هـ)',
+    'fathalbayan': 'فتح البيان — صديق حسن خان (١٣٠٧ هـ)',
+    'muyassar': 'الميسر — مجمع الملك فهد',
+    'ibnkathir': 'تفسير القرآن العظيم — ابن كثير (٧٧٤ هـ)',
+    'shawkani': 'فتح القدير — الشوكاني (١٢٥٠ هـ)',
+    'mukhtasar': 'المختصر — مركز تفسير',
+    'qurtubi': 'الجامع لأحكام القرآن — القرطبي (٦٧١ هـ)',
+    'ibnjuzayy': 'التسهيل لعلوم التنزيل — ابن جُزَيّ (٧٤١ هـ)',
+    'saadi': 'تيسير الكريم الرحمن — السعدي (١٣٧٦ هـ)',
+    'baghawi': 'معالم التنزيل — البغوي (٥١٦ هـ)',
+    'jazaeri': 'أيسر التفاسير — أبو بكر الجزائري (١٤٣٩ هـ)',
+    'alusi': 'روح المعاني — الآلوسي (١٢٧٠ هـ)',
+    'ibnaljawzi': 'زاد المسير — ابن الجوزي (٥٩٧ هـ)',
+    'razi': 'مفاتيح الغيب — فخر الدين الرازي (٦٠٦ هـ)',
+    'ibnuthaymeen': 'تفسير القرآن الكريم — ابن عثيمين (١٤٢١ هـ)',
+    'mawardi': 'النكت والعيون — الماوردي (٤٥٠ هـ)',
+    'jalalayn': 'تفسير الجلالين — المحلّي والسيوطي (٨٦٤، ٩١١ هـ)',
+    'ibnalqayyim': 'تفسير ابن قيّم الجوزيّة — ابن القيم (٧٥١ هـ)',
+    'baqai': 'نظم الدرر — البقاعي (٨٨٥ هـ)',
+    'iji': 'جامع البيان — الإيجي (٩٠٥ هـ)',
+    'baydawi': 'أنوار التنزيل — البيضاوي (٦٨٥ هـ)',
+    'ibnashur': 'التحرير والتنوير — ابن عاشور (١٣٩٣ هـ)',
+    'nasafi': 'مدارك التنزيل — النسفي (٧١٠ هـ)',
+    'samaani': 'تفسير القرآن — السمعاني (٤٨٩ هـ)',
+    'wahidi': 'الوجيز — الواحدي (٤٦٨ هـ)',
+    'makki': 'الهداية إلى بلوغ النهاية — مكي بن أبي طالب (٤٣٧ هـ)',
+    'abuhayyan': 'البحر المحيط — أبو حيان (٧٤٥ هـ)',
+    'zamanin': 'تفسير القرآن العزيز — ابن أبي زمنين (٣٩٩ هـ)',
+    'qasimi': 'محاسن التأويل — القاسمي (١٣٣٢ هـ)',
+    'thalabi': 'الكشف والبيان — الثعلبي (٤٢٧ هـ)',
+    'abualsuod': 'إرشاد العقل السليم — أبو السعود (٩٨٢ هـ)',
+    'suyuti': 'الدر المنثور — جلال الدين السيوطي (٩١١ هـ)',
+    'samarqandi': 'بحر العلوم — السمرقندي (٣٧٣ هـ)',
+    'zamakhshari': 'الكشاف — الزمخشري (٥٣٨ هـ)',
+    'ibnabihatim': 'تفسير القرآن العظيم مسندًا — ابن أبي حاتم الرازي (٣٢٧ هـ)',
+    'thaalabi': 'الجواهر الحسان — الثعالبي (٨٧٥ هـ)'
 }
 
-dictBuggedNames = {
-    'maturidi': 'تفسير تأويلات أهل السنة/ الماتريدي  (ت 333هـ)',
-    'tabari': 'تفسير جامع البيان في تفسير القرآن/ الطبري (ت 310 هـ)',
-    'ibnashur': 'تفسير التحرير والتنوير/ ابن عاشور (ت 1393 هـ)',
-    'qurtubi': 'تفسير الجامع لاحكام القرآن/ القرطبي (ت 671 هـ)',
-    'mawardi': 'تفسير النكت والعيون/ الماوردي (ت 450 هـ)',
-    'baghawi': 'تفسير معالم التنزيل/ البغوي (ت 516 هـ)',
-    'nasafi': 'تفسير مدارك التنزيل وحقائق التأويل/ النسفي (ت 710 هـ)',
-    'ibnabdalsalam': 'تفسير القرآن/ ابن عبد السلام (ت 660 هـ)',
-    "sa'di": 'تفسير تيسير الكريم الرحمن في تفسير كلام المنان/ عبد الرحمن بن ناصر بن السعدي (ت 1376هـ)',
-    'hashiyajalalayn': 'تفسير حاشية الصاوي / تفسير الجلالين(ت1241هـ)',
-    'samarqandi': 'تفسير بحر العلوم/ السمرقندي (ت 375 هـ)',
-    'razi': 'تفسير مفاتيح الغيب ، التفسير الكبير/ الرازي (ت 606 هـ)',
-    'ibnkathir': 'تفسير تفسير القرآن العظيم/ ابن كثير (ت 774 هـ)',
-    'shawkani': 'تفسير فتح القدير/ الشوكاني (ت 1250 هـ)',
-    'ibnaljawzi': 'تفسير زاد المسير في علم التفسير/ ابن الجوزي (ت 597 هـ)',
-    'duralmanthur': 'تفسير الدر المنثور في التفسير بالمأثور/ السيوطي (ت 911 هـ)',
-    'zamakhshari': 'تفسير الكشاف/ الزمخشري (ت 538 هـ)',
-    'baydawi': 'تفسير انوار التنزيل واسرار التأويل/ البيضاوي (ت 685 هـ)',
-    'jalalayn': 'تفسير تفسير الجلالين/ المحلي و السيوطي (ت المحلي 864 هـ)',
-    'jilani': 'تفسير تفسير الجيلاني/ الجيلاني (ت713هـ)',
-    'ibnattiyah': 'تفسير المحرر الوجيز في تفسير الكتاب العزيز/ ابن عطية (ت 546 هـ)',
-    "tha'labi": 'تفسير الكشف والبيان / الثعلبي (ت 427 هـ)',
-    'ibnjuzayy': 'تفسير التسهيل لعلوم التنزيل / ابن جزي الغرناطي (ت 741 هـ)',
-    'khazin': 'تفسير لباب التأويل في معاني التنزيل/ الخازن (ت 725 هـ)',
-    'abuhayyan': 'تفسير البحر المحيط/ ابو حيان (ت 754 هـ)',
-    "baqa'i": 'تفسير نظم الدرر في تناسب الآيات والسور/ البقاعي (ت 885 هـ)',
-    'tustari': 'تفسير القرآن/ التستري (ت 283 هـ)',
-    'salami': 'تفسير حقائق التفسير/ السلمي (ت 412 هـ)',
-    'qushayri': 'تفسير لطائف الإشارات / القشيري (ت 465 هـ)'
-}
+dictNameReverse = dict((value, key) for key, value in dictName.items())
 
 dictID = {
-    'maturidi': 94,
-    'tabari': 1,
-    'ibnashur': 54,
-    'qurtubi': 5,
-    'mawardi': 12,
-    'baghawi': 13,
-    'nasafi': 17,
-    'ibnabdalsalam': 16,
-    "sa'di": 98,
-    'hashiyajalalayn': 96,
-    'samarqandi': 11,
-    'razi': 4,
-    'ibnkathir': 7,
-    'shawkani': 9,
-    'ibnaljawzi': 15,
-    'duralmanthur': 26,
-    'zamakhshari': 2,
-    'baydawi': 6,
-    'jalalayn': 8,
-    'jilani': 95,
-    'ibnattiyah': 14,
-    "tha'labi": 75,
-    'ibnjuzayy': 88,
-    'khazin': 18,
-    'abuhayyan': 19,
-    "baqa'i": 25,
-    'tustari': 29,
-    'salami': 30,
-    'qushayri': 31,
+    'ibnatiyah': 'ibn-atiyah',
+    'tabari': 'tabari',
+    'fathalbayan': 'fath-albayan',
+    'muyassar': 'muyassar',
+    'ibnkathir': 'ibn-katheer',
+    'shawkani': 'fath-alqadeer',
+    'mukhtasar': 'mukhtasar',
+    'qurtubi': 'qurtubi',
+    'ibnjuzayy': 'altasheel',
+    'saadi': 'saadi',
+    'baghawi': 'baghawi',
+    'jazaeri': 'aysar-altafasir',
+    'alusi': 'alaloosi',
+    'ibnaljawzi': 'zad-almaseer',
+    'razi': 'alrazi',
+    'ibnuthaymeen': 'ibn-uthaymeen',
+    'mawardi': 'almawirdee',
+    'jalalayn': 'jalalayn',
+    'ibnalqayyim': 'ibn-alqayyim',
+    'baqai': 'nathm-aldurar',
+    'iji': 'iejee',
+    'baydawi': 'albaydawee',
+    'ibnashur': 'ibn-aashoor',
+    'nasafi': 'alnasafi',
+    'samaani': 'samaani',
+    'wahidi': 'alwajeez',
+    'makki': 'makki',
+    'abuhayyan': 'albahr-almuheet',
+    'zamanin': 'zimneen',
+    'qasimi': 'mahasin-altaweel',
+    'thalabi': 'althalabi',
+    'abualsuod': 'abu-alsuod',
+    'suyuti': 'aldur-almanthoor',
+    'samarqandi': 'samarqandi',
+    'zamakhshari': 'kashaf',
+    'ibnabihatim': 'ibn-abi-hatim',
+    'thaalabi': 'althaalabi'
 }
-
-
-class TafsirSpecifics:
-
-    def __init__(self):
-        self.baseurl = 'https://www.altafsir.com/Tafasir.asp?tMadhNo=0&tTafsirNo={}&tSoraNo={}&tAyahNo={}&tDisplay=' \
-                       'yes&Page={}&Size=1&LanguageId=1'
-
-    def makeURL(self, tafsirID, surah, ayah, page):
-        url = self.baseurl.format(tafsirID, surah, ayah, page)
-        return url
-
-    async def getTafsir(self, formattedURL: str):
-        async with ClientSession() as session:
-            async with session.get(formattedURL) as response:
-                return await response.text(encoding='cp1256')
-
-    def getTafsirID(self, tafsir):
-        tafsirName = dictName[tafsir.lower()]
-        tafsirID = dictID[tafsir.lower()]
-        return tafsirName, tafsirID
-
-    def getTafsirIDFromArabic(self, arabicName):
-        for englishName, value in dictName.items():
-            if value == arabicName:
-                _, tafsirID = TafsirSpecifics.getTafsirID(self, englishName)
-                return tafsirID, englishName
-
-    def processRef(self, ref: str):
-        surah, ayah = ref.split(':')
-        return surah, ayah
-
-    def processText(self, content, tafsir):
-        content = content.encode('cp1256').decode('cp1256')
-
-        '''
-        We want to edit the page so the ayah references show up.
-        Firstly, we delete the ayah overview at the beginning of each page.
-        Then we delete the tags surrounding the ayat so they are detected by the bot.
-        '''
-
-        content = str(content) \
-            .replace('<font class="TextAyah" id="AyahText">', ' ') \
-            .replace('<font class="TextAyah"', '  ')
-
-        soup = BeautifulSoup(content, 'html.parser')
-
-        tags = []
-
-        for tag in soup.findAll('font', attrs={'class': 'TextResultArabic'}):
-            tags.append(f' {tag.getText()}')  # For each tag with Arabic text, add it to a list.
-
-        text = ''.join(tags)  # Convert the list into a string.
-
-        text = text.replace('ويسعدنا استقبال اقتراحاتكم وملاحظاتكم عبر البريد الإلكتروني المخصص ', '') \
-            .replace("هل تؤيد تغيير مخطط وتصميم الموقع ليواكب التطورات التكنولوجية؟ زوارنا الكرام، نشكركم على إبداء رأيكم لمساعدتنا في اتخاذ القرار المناسب والمرضي لكم بناء على نتائج التصويت.", '') \
-            .replace('(altafsir@itgsolutions.com)', '') \
-            .replace('مصنف', '') \
-            .replace('و مدقق', '') \
-            .replace('مرحلة اولى', '') \
-            .replace('*', '') \
-            .replace(dictBuggedNames[tafsir], '') \
-            .replace('\r\n\r\n\n', '') \
-            .replace('  ', '') \
-            .replace("و لم يتم تدقيقه بعد", '')
-
-        text = "\n".join([ll.rstrip() for ll in text.splitlines() if ll.strip()])  # Delete blank lines
-
-        return text
-
-    def makeEmbed(self, text, page, tafsirName, surah, ayah):
-        if text is not None and text is not '' and text is not ' ':
-
-            tafsirName = tafsirName.replace('(', ' -  ') \
-                .replace(')', '')
-
-            em = discord.Embed(title=f'{tafsirName}', colour=0x467f05)
-            em.set_footer(text=f'Page {page}')
-
-            fields = textwrap.wrap(text, 1024, break_long_words = False)
-            for x in fields:
-                em.add_field(name = '\u200b', value = x, inline = False)
-
-            em.set_author(name=f'{surah}:{ayah}')
-            em.set_thumbnail(url=icon)
-
-            return em
 
 
 class Tafsir(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.url = 'https://tafsir.app/{}/{}/{}'
 
-    @commands.command(name="atafsir")
-    async def atafsir(self, ctx, ref: str, tafsir: str = "tabari", page : int = 1):
+    def make_url(self, tafsir_id, surah, ayah):
+        url = self.url.format(tafsir_id, surah, ayah)
+        return url
 
-        t = TafsirSpecifics()
+    '''
+    Gets the tafir ID (for use in the URL) and Arabic name
+    '''
+    @staticmethod
+    def get_tafsir_id(tafsir):
+        tafsir_name = dictName[tafsir.lower()]
+        tafsir_id = dictID[tafsir.lower()]
+        return tafsir_name, tafsir_id
 
-        surah, ayah = t.processRef(ref)
+    '''
+    Get the surah and ayah from the ref. 
+    '''
+    @staticmethod
+    def process_ref(ref: str):
+        surah, ayah = ref.split(':')
+        return surah, ayah
 
-        tafsirName, tafsirID = t.getTafsirID(tafsir)
+    '''
+    Gets, formats and paginates the tafsir text.
+    '''
+    @staticmethod
+    def process_text(content, page):
 
-        formattedURL = t.makeURL(tafsirID, surah, ayah, page)
+        # Parse the website's source and find the tafsir text.
+        soup = BeautifulSoup(content, 'html.parser')
+        tag = soup.find('div', attrs={'id': 'preloaded'})
+        text = tag.get_text(separator=" ").strip()
+        text = text.replace(']]', '*]')\
+            .replace('[[', '[*')\
+            .replace('*', '')\
+            .replace('"ayah":', '') \
+            .replace('"', '') \
+            .replace('﴿', '﴿**__ ') \
+            .replace('﴾', '__**﴾') \
+            .replace('}', ' __**﴾') \
+            .replace('{', ' ﴿**__') \
+            .replace(' ).', ').#') \
 
-        content = str(await t.getTafsir(formattedURL))
+        # Paginate the text, set the embed text to the current page and calculate how many pages were made:
+        try:
+            text = textwrap.wrap(text, 2040, break_long_words=False)[page - 1]
+            num_pages = len(text)
+        except IndexError:
+            return
 
-        text = t.processText(content, tafsir)
+        # Now we process the footnotes for the current page.
+        # Firstly, we find all the footnotes in the text and add them to the footer text.
+        footnotes = re.findall("\[(.*?)\]", text)
+        footer = []
+        footnote_number = 1
+        for footnote in footnotes:
+            text = text.replace(footnote, '')
+            footnote_number_arabic = convertToArabicNumber(str(footnote_number))
+            footer.append(f'\n\n({footnote_number_arabic}) {footnote}')
+            footnote_number = footnote_number + 1
+        footer = ''.join(footer)
 
-        em = t.makeEmbed(text, page, tafsirName, surah, ayah)
+        # Now we replace the footnotes in the text with a reference:
+        total_footnotes = len(re.findall("\[(.*?)\]", text))
+        footnote_number = 1
+        for x in range(total_footnotes):
+            footnote_number_arabic = convertToArabicNumber(str(footnote_number))
+            text = text.replace('[]', f'({footnote_number_arabic})', 1)
+            footnote_number = footnote_number + 1
+
+        return text, num_pages, footer
+
+    @staticmethod
+    def make_embed(text, page, tafsir_name, surah, ayah, footer, formatted_url):
+
+        ref = convertToArabicNumber(f'{surah}:{ayah}')
+        text = text.replace('#', '\n')
+        em = discord.Embed(title=ref, colour=0x467f05, description=text)
+        if footer != '':
+            em.set_footer(text=f'Page {page} \n____________________________________\n{footer}')
+        else:
+            em.set_footer(text=f'Page {page}')
+        em.set_author(name=f'{tafsir_name}', url=formatted_url, icon_url=icon)
+
+        return em
+
+    @commands.command(name="atafsir", aliases=["atafseer"])
+    async def atafsir(self, ctx, ref: str, tafsir: str = "tabari", page: int = 1):
+
+        surah, ayah = self.process_ref(ref)
+
+        tafsir_name, tafsir_id = self.get_tafsir_id(tafsir)
+
+        formatted_url = self.make_url(tafsir_id, surah, ayah)
+
+        content = str(await get_site_source(formatted_url))
+
+        try:
+            text, num_pages, footer = self.process_text(content, page)
+        except AttributeError:
+            return await ctx.send('***عفوا، لا مواد لهذه الآية في هذا الكتاب***')
+
+        em = self.make_embed(text, page, tafsir_name, surah, ayah, footer, formatted_url)
 
         msg = await ctx.send(embed=em)
-        await msg.add_reaction(emoji='➡')
+        if num_pages > 1:
+            await msg.add_reaction(emoji='➡')
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        t = TafsirSpecifics()
-        if reaction.message.author.id == 352815253828141056 and user.id != 352815253828141056:
+        if reaction.message.author == self.bot.user and user != self.bot.user:
             embed = reaction.message.embeds[0]
-            arabicName = embed.title  # Delete last character as it's blank.
-            tafsirID, tafsir = t.getTafsirIDFromArabic(arabicName)
-            ref = embed.author.name
-            surah, ayah = t.processRef(ref)
-            page = int(embed.footer.text.split()[1])
-            if page > 1:
-                await reaction.message.add_reaction(emoji="⬅")
+            # Get the tafsir ID to use in the URL from its Arabic name in the embed's author:
+            arabic_name = embed.author.name
+            tafsir_name = dictNameReverse[arabic_name]
+            tafsir_id = dictID[tafsir_name]
 
+            # Get the surah and ayah from the embed's title:
+            ref = convertFromArabicNumber(embed.title)
+            surah, ayah = self.process_ref(ref)
+
+            # Get the page number from the embed footer:
+            page = int(embed.footer.text.split()[1])
+
+            # If the reaction is the forward arrow, attempt to get the next page:
             if reaction.emoji == '➡':
                 await reaction.message.remove_reaction(emoji="➡", member=user)
-                newPage = int(embed.footer.text.split()[1]) + 1
-                formattedURL = t.makeURL(tafsirID, surah, ayah, newPage)
-                content = str(await t.getTafsir(formattedURL))
+                new_page = page + 1
+                formatted_url = self.make_url(tafsir_id, surah, ayah)
+                content = str(await get_site_source(formatted_url))
 
-                text = t.processText(content, tafsir)
+                try:
+                    text, num_pages, footer = self.process_text(content, new_page)
+                except TypeError:
+                    return
 
-                em = t.makeEmbed(text, newPage, arabicName, surah, ayah)
-                if em is not None:
+                # Only proceed if the requested page is less than or equal to the total number of pages:
+                if new_page <= num_pages:
+                    em = self.make_embed(text, new_page, arabic_name, surah, ayah, footer, formatted_url)
                     await reaction.message.edit(embed=em)
+                    await reaction.message.add_reaction(emoji='⬅')
+                    if new_page == num_pages:
+                        await reaction.message.remove_reaction(emoji="➡", member=self.bot.user)
 
+            # If the reaction is the backwards arrow, attempt to get the previous page.
             elif reaction.emoji == '⬅':
                 await reaction.message.remove_reaction(emoji="⬅", member=user)
-                if page > 1:
-                    newPage = int(embed.footer.split()[1]) - 1
-                    formattedURL = t.makeURL(tafsirID, surah, ayah, newPage)
-                    content = str(await t.getTafsir(formattedURL))
-
-                    text = t.processText(content, tafsir)
-
-                    em = t.makeEmbed(text, newPage, arabicName, surah, ayah)
-                    if em is not None:
-                        await reaction.message.edit(embed=em)
+                new_page = page - 1
+                if new_page > 0:
+                    formatted_url = self.make_url(tafsir_id, surah, ayah)
+                    content = str(await get_site_source(formatted_url))
+                    text, num_pages, footer = self.process_text(content, new_page)
+                    em = self.make_embed(text, new_page, arabic_name, surah, ayah, footer, formatted_url)
+                    await reaction.message.edit(embed=em)
+                    await reaction.message.add_reaction(emoji='➡')
+                    if new_page == 1:
+                        await reaction.message.remove_reaction(emoji='⬅', member=self.bot.user)
 
 
 # Register as cog

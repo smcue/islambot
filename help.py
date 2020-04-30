@@ -16,7 +16,8 @@ class Help(commands.Cog):
 
         if section == "main":
             em = discord.Embed(title='Help', colour=0x0a519c, description="**Type -ihelp <category>**, e.g. `-ihelp quran`")
-            em.add_field(name="Categories", value='\n• Quran\n• Hadith\n• Tafsir\n• Prayer Times\n• Calendar', inline=False)
+            em.add_field(name="Categories", value='\n• Quran\n• Hadith\n• Tafsir\n• Prayer Times\n• Dua\n• Calendar',
+                         inline=False)
             em.add_field(name="Information", value="• Code: https://github.com/galacticwarrior9/islambot\n• Documentation: https://github.com/galacticwarrior9/islambot/blob/master/README.md", inline=False)
             em.set_footer(text="Support Server - https://discord.gg/Ud3MHJR")
             await ctx.send(embed=em)
@@ -109,10 +110,20 @@ class Help(commands.Cog):
             em = discord.Embed(title="Prayer Times", colour=0x0a519c)
 
             em.add_field(name="-prayertimes", inline=True, value="Gets prayer times for a specified location."
-                                                            "\n\n__Usage__"
-                                                            "\n\n`-prayertimes <location>`"
-                                                            "\n\nExample: `-prayertimes Burj Khalifa, Dubai`")
+                                                                 "\n\n__Usage__"
+                                                                 "\n\n`-prayertimes <location>`"
+                                                                 "\n\nExample: `-prayertimes Burj Khalifa, Dubai`")
 
+            await ctx.send(embed=em)
+
+        elif section == "dua":
+            em = discord.Embed(title="Dua", colour=0x0a519c)
+            em.add_field(name="-dualist", inline=True, value="Shows a list of duas.")
+            em.add_field(name="-dua", inline=True, value="Gets a dua for a topic."
+                                                         "\n\n__Usage__"
+                                                         "\n\n`-dua <topic>`"
+                                                         "\n\nExample: `-dua forgiveness`"
+                                                         "\n\nSee `-dualist` for a list of topics.")
             await ctx.send(embed=em)
 
 

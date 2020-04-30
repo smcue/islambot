@@ -1,7 +1,6 @@
 from discord.ext import commands
 import discord
 import textwrap
-from bs4 import BeautifulSoup
 from helpers import get_site_source
 
 icon = 'https://lh5.ggpht.com/lRz25mOFrRL42NuHtuSCneXbWV2Gtm7iYZ5eQbuA7JWUC3guWaTaQxNJ7j9rsRMCNAU=w150'
@@ -24,60 +23,57 @@ dictID = {
     'kashf': 109,
 }
 
+invalid_verse = '**Invalid verse.** Please type the command in this format: `-tafsir surah:ayah tafsirname`.' \
+                '\n\ne.g. `-tafsir 1:1 ibnkathir`'
+
+invalid_tafsir = "**Couldn't find tafsir!** Please choose from the following: `ibnkathir`, `jalalayn`, `qushayri`, " \
+                 "`wahidi`, `tustari`, `kashf`."
+
+
 class TafsirEnglish(commands.Cog):
-    fields = []
 
     def __init__(self, bot):
         self.bot = bot
+        self.baseurl = 'https://www.altafsir.com/Tafasir.asp?tMadhNo=0&tTafsirNo={}&tSoraNo={}&tAyahNo={}&tDisplay=y' \
+                       'es&Page={}&Size=1&LanguageId=2'
 
     @commands.command(name='tafsir')
     async def tafsir(self, ctx, ref: str, tafsir: str = "jalalayn", page: str = 1):
 
         try:
             surah, ayah = ref.split(':')
-
         except:
-            await ctx.send("**Invalid verse.** Please type the command in this format: `-tafsir surah:ayah tafsirname`.\n\ne.g. `-tafsir 1:1 ibnkathir`")
-            return
+            return await ctx.send(invalid_verse)
 
         try:
             tafsirName = dictName[tafsir.lower()]
-
         except:
-            await ctx.send("**Couldn't find tafsir!** Please choose from the following: `ibnkathir`, `jalalayn`, `qushayri`, `wahidi`, `tustari`, `kashf`.")
-            return
-
-        t = EnglishTafsirSpecifics()
+           return await ctx.send(invalid_tafsir)
 
         if tafsir == 'ibnkathir':
 
             soup = await get_site_source(f'http://www.alim.org/library/quran/AlQuran-tafsir/TIK/{surah}/{ayah}')
 
-            tags = []
-            for tag in soup.findAll('p'):
-                tags.append(f"{tag.getText()}")
-            for tag in soup.findAll('div', {'class':'view-empty'}):
-                tags.append(f"{tag.getText()}")
+            text = self.processText(soup, tafsir)
+            text = self.format_text(text)
 
-            text = ''.join(tags) \
-                .replace("Thanks for visiting Alim.org, The Alim Foundation's flagship site that provides the world's only social network built around Qur'an, Hadith, and other classical sources of Islamic knowledge.",'') \
-                .replace("We are a free service run by many volunteers and we need your help to stay that way. Please consider a small donation(tax-deductible in the USA) to help us improve Alim.org by adding more content and getting faster servers.", '') \
-                .replace("Share your thoughts about this with others by posting a comment.  Visit our FAQ for some ideas.", '') \
-                .replace('`', 'ʿ') \
-                .replace('﴾', '') \
-                .replace('﴿', '') \
-                .replace('»', '» ') \
-                .replace('«', ' «') \
-                .replace('bin', 'b. ') \
-                .replace('Hadith', 'hadith') \
-                .replace('No Comments', '') \
-                .replace('Messenger of Allah', 'Messenger of Allah ﷺ') \
-                .replace (' )', ')') \
+            # Paginate results:
+            pages = textwrap.wrap(text, 2048, break_long_words=False)
+            num_pages = len(pages)
 
-            processedText = textwrap.wrap(text, 5950, break_long_words=False)
-            for entry in processedText:
-                em = t.makeEmbed(entry, tafsirName, surah, ayah)
-                await ctx.send(embed=em)
+            # We only want to send the first page:
+            try:
+                text = pages[0]
+            except IndexError:
+                return await ctx.send("Sorry, there is no tafsir available for this verse. Try using Tafsir al-Jalala"
+                                      f"yn (`-tafsir {surah}:{ayah} jalalayn`).")
+
+            text = text.replace('#', '\n')
+            em = self.makeEmbed(text, tafsirName, surah, ayah, page)
+            msg = await ctx.send(embed=em)
+
+            if num_pages > 1:
+                await msg.add_reaction(emoji='➡')
 
         elif tafsir == 'jalalayn':
 
@@ -100,67 +96,131 @@ class TafsirEnglish(commands.Cog):
                 text = rawText[(rawText.index(char1) + len(char1)):rawText.index(char2)]
                 text = u"{}".format(text).replace('`', '\\`').rstrip()
 
-            em = t.makeEmbed(text, tafsirName, surah, ayah)
+            em = self.makeEmbed(text, tafsirName, surah, ayah, page)
             await ctx.send(embed=em)
 
         elif tafsir == 'tustari' or tafsir == 'kashani' or tafsir == 'kashf' or tafsir == 'wahidi' or tafsir == 'qushayri':
 
-            surah, ayah = t.processRef(ref)
-            tafsirName, tafsirID = t.getTafsirDetails(tafsir)
-            formattedURL = t.makeURL(tafsirID, surah, ayah, page)
+            surah, ayah = self.processRef(ref)
+            tafsirName, tafsirID = self.getTafsirDetails(tafsir)
+            formattedURL = self.makeURL(self, tafsirID, surah, ayah, page)
             rawText = await get_site_source(formattedURL)
-            text = t.processText(rawText, tafsir)
+            text = self.processText(rawText, tafsir)
 
-            em = t.makeEmbed(text, tafsirName, surah, ayah)
+            em = self.makeEmbed(text, tafsirName, surah, ayah, page)
             await ctx.send(embed=em)
 
-
-class EnglishTafsirSpecifics:
-
-    def __init__(self):
-        self.baseurl = 'https://www.altafsir.com/Tafasir.asp?tMadhNo=0&tTafsirNo={}&tSoraNo={}&tAyahNo={}&tDisplay=yes&Page={}&Size=1&LanguageId=2'
-
+    @staticmethod
     def makeURL(self, tafsirID, surah, ayah, page):
         url = self.baseurl.format(tafsirID, surah, ayah, page)
         return url
 
-    def processRef(self, ref: str):
+    @staticmethod
+    def processRef(ref: str):
         surah, ayah = ref.split(':')
         return surah, ayah
 
-    def getTafsirDetails(self, tafsir):
+    @staticmethod
+    def getTafsirDetails(tafsir):
         tafsirName = dictName[tafsir.lower()]
         tafsirID = dictID[tafsir.lower()]
         return tafsirName, tafsirID
 
-    def makeEmbed(self, text, tafsirName, surah, ayah):
-        if text is not None and text is not '' and text is not ' ':
+    @staticmethod
+    def makeEmbed(text, tafsir, surah, ayah, page):
+        if len(text) > 2048:
+            text = text[:2046] + '...'
+        em = discord.Embed(title=f'{surah}:{ayah}', colour=0x467f05, description=text)
+        em.set_author(name=f'{tafsir}', icon_url=icon)
+        if tafsir == 'Tafsīr Ibn Kathīr':
+            em.set_footer(text=f"Page {page}")
+        return em
 
-            em = discord.Embed(title=f'{surah}:{ayah}', colour=0x467f05)
-
-            fields = textwrap.wrap(text, 1024, break_long_words=False)
-            for x in fields:
-                em.add_field(name='\u200b', value = x, inline=False)
-
-            em.set_author(name=f'{tafsirName}', icon_url=icon)
-
-            if tafsirName == 'Asbāb al-Nuzūl':
-                em.set_footer(text='Al-Wahidi includes dubious narrations in this work. Please be cautious.')
-
-            return em
-
-    def processText(self, content, tafsir):
-
+    @staticmethod
+    def processText(content, tafsir):
         tags = []
 
-        for tag in content.findAll('font',attrs={'class':'TextResultEnglish'}):
-            tags.append(f' {tag.getText()}')
-        for tag in content.findAll('font',attrs={'class':'TextArabic'}):
-            tags.append(tag.getText())
+        if tafsir == 'ibnkathir':
+            p_tags = content.find_all('p')
+            x = 0
+            for tag in range(len(p_tags)):
+                tags.append(p_tags[x].get_text())
+                x += 1
+
+        else:
+            for tag in content.findAll('font', attrs={'class': 'TextResultEnglish'}):
+                tags.append(f' {tag.getText()}')
+            for tag in content.findAll('font', attrs={'class': 'TextArabic'}):
+                tags.append(tag.getText())
 
         text = ''.join(tags)
 
         return text
+
+    @staticmethod
+    def format_text(text):
+        text = text.replace("Thanks for visiting Alim.org, The Alim Foundation's flagship site that provides the w"
+                            "orld's only social network built around Qur'an, Hadith, and other classical sources of"
+                            " Islamic knowledge.", '') \
+            .replace("We are a free service run by many volunteers and we need your help to stay that way. Please"
+                     " consider a small donation(tax-deductible in the USA) to help us improve Alim.org by adding"
+                     " more content and getting faster servers.", '') \
+            .replace("Share your thoughts about this with others by posting a comment.  "
+                     "Visit our FAQ for some ideas.", '') \
+            .replace('`', 'ʿ') \
+            .replace('﴾', '##') \
+            .replace('﴿', '##') \
+            .replace('»', '»##') \
+            .replace('«', ' ##«') \
+            .replace('bin', 'b. ') \
+            .replace('Hadith', 'hadith') \
+            .replace('No Comments', '') \
+            .replace('Messenger of Allah', 'Messenger of Allah ﷺ') \
+            .replace(' )', ')')
+
+        return text
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        if reaction.message.author == self.bot.user and user != self.bot.user:
+
+            embed = reaction.message.embeds[0]
+            surah, ayah = self.processRef(embed.title)
+            tafsir = 'Tafsīr Ibn Kathīr'
+            page = int(embed.footer.text.split()[1])
+
+            soup = await get_site_source(f'http://www.alim.org/library/quran/AlQuran-tafsir/TIK/{surah}/{ayah}')
+
+            text = self.processText(soup, 'ibnkathir')
+            text = self.format_text(text)
+
+            pages = textwrap.wrap(text, 2048, break_long_words=False)
+            num_pages = len(pages)
+
+            if reaction.emoji == '➡':
+                await reaction.message.remove_reaction(emoji="➡", member=user)
+                new_page = page + 1
+                if new_page <= num_pages:
+                    text = pages[new_page - 1]
+                    text = text.replace('#', '\n')
+                    em = self.makeEmbed(text, tafsir, surah, ayah, new_page)
+                    await reaction.message.edit(embed=em)
+                    await reaction.message.add_reaction(emoji='⬅')
+                    if new_page == num_pages:
+                        await reaction.message.remove_reaction(emoji="➡", member=self.bot.user)
+
+            if reaction.emoji == '⬅':
+                await reaction.message.remove_reaction(emoji="⬅", member=user)
+                new_page = page - 1
+                if new_page > 0:
+                    text = pages[new_page - 1]
+                    text = text.replace('#', '\n')
+                    em = self.makeEmbed(text, tafsir, surah, ayah, new_page)
+                    await reaction.message.edit(embed=em)
+                    await reaction.message.add_reaction(emoji='➡')
+                    if new_page == 1:
+                        await reaction.message.remove_reaction(emoji='⬅', member=self.bot.user)
+
 
 # Register as cog
 def setup(bot):
