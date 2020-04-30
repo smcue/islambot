@@ -10,12 +10,13 @@
 An Islamic bot for Discord with the following features:
 
 * *Qur'an*, with support for 75+ translations.
-* *Tafsir*, with 7 available in English and 28 in Arabic.
+* *Tafsir*, with 7 available in English and 37 in Arabic.
 * *Hadith* in English and Arabic, from [sunnah.com](https://sunnah.com).
 * Prayer times for any location in the world. 
 * The ability to view the morphology of every word in the Qur'an. 
 * Conversions between the Hijri and Gregorian calendars.
 * Visualisation of Qur'anic verses on a *mushaf*. 
+* Fetching duas from *Fortress of the Muslim* (Hisn al-Muslim)
 
 IslamBot is licensed under the [GNU GPL v3.0](https://github.com/galacticwarrior9/islambot/blob/master/LICENSE). You are welcome to use the code for your own purposes, on the condition it is made open source and credit is given.
 
@@ -112,7 +113,7 @@ For example:
 ## Tafsir (Commentaries on the Qur'an) 
 
 ### -atafsir
-**-atafsir** allows you to quote from over 26 Arabic *tafaseer* (commentaries on the Qurʾān). A list of valid *tafaseer* is available [here](https://github.com/galacticwarrior9/islambot/blob/master/Tafsir.md).
+**-atafsir** allows you to quote from over 37 Arabic *tafaseer* (commentaries on the Qurʾān). A list of valid *tafaseer* is available [here](https://github.com/galacticwarrior9/islambot/blob/master/Tafsir.md).
 
 ```
 -atafsir <surah>:<verse(s> [tafsir]
@@ -140,6 +141,25 @@ For example:
 -tafsir 1:1 ibnkathir
 ```
 The above command would quote the tafsir of Surah al-Fatihah, verse 1 from Tafsir Ibn Kathir. 
+
+## Dua 
+
+### -dualist
+Sends the list of available dua topics for `-dua`. 
+
+
+### -dua
+**-dua** allows you to get duas from *Fortress of the Muslim* (Hisn al-Muslim). 
+
+```
+-dua <dua topic from -dualist>
+```
+
+For example, to get duas for breaking fasts:
+```
+-dua breaking fast
+```
+
 
 ## Hadith 
 
